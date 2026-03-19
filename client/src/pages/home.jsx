@@ -14,7 +14,7 @@ const Home = () => {
   // ฟังก์ชันดึงโพสต์ 
   const fetchPosts = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/posts');
+      const response = await axios.get('https://mygram-backend-yiba.onrender.com/api/posts');
       
       const realPosts = response.data.map((post) => ({
         id: post._id,              

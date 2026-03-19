@@ -13,7 +13,7 @@ const Profile = () => {
     setLoading(true);
 
     try {
-      const res = await axios.put(`http://localhost:5000/api/auth/update/${loggedInUser.id || loggedInUser._id}`, {
+      const res = await axios.put(`https://mygram-backend-yiba.onrender.com/api/auth/update/${loggedInUser.id || loggedInUser._id}`, {
         username,
         email
       });

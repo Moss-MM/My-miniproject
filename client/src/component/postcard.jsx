@@ -20,7 +20,7 @@ const Postcard = ({ post }) => {
     try {
       if (!myId) return alert("กรุณาล็อกอินก่อนครับ");
       // 👇 ใช้ postId ที่เราดักไว้แล้ว
-      await axios.put(`http://localhost:5000/api/posts/${postId}/like`, { userId: myId });
+      await axios.put(`https://mygram-backend-yiba.onrender.com/api/posts/${postId}/like`, { userId: myId });
       setLikes(isLiked ? likes - 1 : likes + 1);
       setIsLiked(!isLiked);
     } catch (err) { console.error(err); }
@@ -30,7 +30,7 @@ const Postcard = ({ post }) => {
     if (e.key === 'Enter' && comment.trim() !== "") {
       try {
         // 👇 ใช้ postId ที่เราดักไว้แล้ว
-        const res = await axios.put(`http://localhost:5000/api/posts/${postId}/comment`, {
+        const res = await axios.put(`https://mygram-backend-yiba.onrender.com/api/posts/${postId}/comment`, {
           userId: myId,
           username: loggedInUser.username,
           text: comment
@@ -45,7 +45,7 @@ const Postcard = ({ post }) => {
     if (window.confirm("คุณแน่ใจนะว่าจะลบโพสต์นี้?")) {
       try {
         // 👇 ใช้ postId ที่เราดักไว้แล้ว
-        await axios.delete(`http://localhost:5000/api/posts/${postId}`, { data: { userId: myId } });
+        await axios.delete(`https://mygram-backend-yiba.onrender.com/api/posts/${postId}`, { data: { userId: myId } });
         window.location.reload();
       } catch (err) { console.error(err); }
     }

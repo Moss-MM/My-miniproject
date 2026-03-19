@@ -16,7 +16,7 @@ const ForgotPassword = () => {
 
     setLoading(true);
     try {
-      const res = await axios.put('http://localhost:5000/api/auth/reset-password', {
+      const res = await axios.put('https://mygram-backend-yiba.onrender.com/api/auth/reset-password', {
         email,
         newPassword
       });

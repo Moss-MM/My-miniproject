@@ -4,7 +4,7 @@ import io from 'socket.io-client';
 import Navbar from '../component/navbar';
 
 // เชื่อมต่อหลังบ้าน
-const socket = io.connect("http://localhost:5000");
+const socket = io.connect("https://mygram-backend-yiba.onrender.com");
 
 const Chat = () => {
   const loggedInUser = JSON.parse(localStorage.getItem("user"));
@@ -24,7 +24,7 @@ const Chat = () => {
       
       const fetchUsers = async () => {
         try {
-          const res = await axios.get(`http://localhost:5000/api/messages/users/${myId}`);
+          const res = await axios.get(`https://mygram-backend-yiba.onrender.com/api/messages/users/${myId}`);
           setUsers(res.data);
         } catch (err) { console.error("ดึงรายชื่อพลาด:", err); }
       };
@@ -38,7 +38,7 @@ const Chat = () => {
       if (currentChat) {
         try {
           const myId = loggedInUser.id || loggedInUser._id;
-          const res = await axios.get(`http://localhost:5000/api/messages/${myId}/${currentChat._id}`);
+          const res = await axios.get(`https://mygram-backend-yiba.onrender.com/api/messages/${myId}/${currentChat._id}`);
           setMessages(res.data);
         } catch (err) { console.error("ดึงประวัติแชทพลาด:", err); }
       }
@@ -81,7 +81,7 @@ const Chat = () => {
 
     try {
       // เซฟลง Database
-      const res = await axios.post("http://localhost:5000/api/messages", messageData);
+      const res = await axios.post("https://mygram-backend-yiba.onrender.com/api/messages", messageData);
       setMessages([...messages, res.data]); // เอามาโชว์ฝั่งเราด้วย
       setNewMessage("");
       setMediaUrl("");

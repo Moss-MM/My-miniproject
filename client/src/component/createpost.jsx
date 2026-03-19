@@ -29,7 +29,7 @@ const CreatePost = () => {
         img: imgUrl.trim()
       };
 
-      const response = await axios.post('http://localhost:5000/api/posts', newPost);
+      const response = await axios.post('https://mygram-backend-yiba.onrender.com/api/posts', newPost);
 
       if (response.status === 200) {
         setDesc(""); 

@@ -17,7 +17,7 @@ const Group = () => {
 
   const fetchGroups = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/api/groups");
+      const res = await axios.get("https://mygram-backend-yiba.onrender.com/api/groups");
       setGroups(res.data);
     } catch (err) { console.error(err); }
   };
@@ -27,7 +27,7 @@ const Group = () => {
   // โหลดโพสต์เฉพาะของกลุ่มที่เลือก
   const fetchGroupPosts = async (groupId) => {
     try {
-      const res = await axios.get(`http://localhost:5000/api/posts/group/${groupId}`);
+      const res = await axios.get(`https://mygram-backend-yiba.onrender.com/api/posts/group/${groupId}`);
       setGroupPosts(res.data);
     } catch (err) { console.error("ดึงโพสต์กลุ่มพลาด:", err); }
   };
@@ -35,7 +35,7 @@ const Group = () => {
   const handleCreateGroup = async (e) => {
     e.preventDefault();
     try {
-      await axios.post("http://localhost:5000/api/groups", { name: newGroupName, desc: newGroupDesc, userId: loggedInUser.id || loggedInUser._id });
+      await axios.post("https://mygram-backend-yiba.onrender.com/api/groups", { name: newGroupName, desc: newGroupDesc, userId: loggedInUser.id || loggedInUser._id });
       alert("สร้างกลุ่มสำเร็จ!");
       setNewGroupName(""); setNewGroupDesc(""); setShowCreateForm(false);
       fetchGroups();
@@ -44,7 +44,7 @@ const Group = () => {
 
   const handleJoinLeave = async (groupId) => {
     try {
-      const res = await axios.put(`http://localhost:5000/api/groups/${groupId}/join`, { userId: loggedInUser.id || loggedInUser._id });
+      const res = await axios.put(`https://mygram-backend-yiba.onrender.com/api/groups/${groupId}/join`, { userId: loggedInUser.id || loggedInUser._id });
       alert(res.data);
       fetchGroups();
       if(activeGroup && activeGroup._id === groupId) setActiveGroup(null); // ถ้ากดออกกลุ่มตอนอยู่ในห้อง ให้เด้งกลับมาหน้ารวม
@@ -54,7 +54,7 @@ const Group = () => {
   const handleDeleteGroup = async (groupId) => {
     if (window.confirm("แน่ใจนะว่าจะยุบกลุ่มนี้ทิ้ง?")) {
       try {
-        await axios.delete(`http://localhost:5000/api/groups/${groupId}`, { data: { userId: loggedInUser.id || loggedInUser._id } });
+        await axios.delete(`https://mygram-backend-yiba.onrender.com/api/groups/${groupId}`, { data: { userId: loggedInUser.id || loggedInUser._id } });
         alert("ลบกลุ่มเรียบร้อย");
         fetchGroups();
         setActiveGroup(null);
@@ -66,7 +66,7 @@ const Group = () => {
   const handleCreateGroupPost = async (e) => {
     e.preventDefault();
     try {
-      await axios.post("http://localhost:5000/api/posts", {
+      await axios.post("https://mygram-backend-yiba.onrender.com/api/posts", {
         userId: loggedInUser.id || loggedInUser._id,
         desc: newPostDesc,
         img: newPostImg,
@@ -84,7 +84,7 @@ const Group = () => {
     if (postUserId === myId || activeGroup.creatorId === myId) {
         if(window.confirm("ต้องการลบโพสต์นี้ใช่ไหม?")) {
             try {
-                await axios.delete(`http://localhost:5000/api/posts/${postId}`, { data: { userId: myId } });
+                await axios.delete(`https://mygram-backend-yiba.onrender.com/api/posts/${postId}`, { data: { userId: myId } });
                 fetchGroupPosts(activeGroup._id);
             } catch (err) { alert("ลบโพสต์ไม่สำเร็จ"); }
         }
