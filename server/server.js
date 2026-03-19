@@ -1,7 +1,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
-const cors = require('cors'); // 👈 ดึงมา
+const cors = require('cors'); 
 const dns = require("dns");
 const http = require('http');
 const { Server } = require('socket.io');
@@ -15,26 +15,30 @@ dotenv.config();
 const app = express();
 
 // ==========================================
-// 🚨 จัดแถว Middleware ใหม่ (เรียงตามนี้เป๊ะๆ ห้ามสลับ)
+// 🚨 ตั้งค่าความปลอดภัยและทางเชื่อม (CORS)
 // ==========================================
-// 1. เปิดประตู CORS ก่อนเพื่อนเลย
-app.use(cors()); 
+const vercelURL = "https://my-miniproject-narifm78s-teetatjamjang-6880s-projects.vercel.app";
 
-// 2. ตัวแปลงข้อมูลให้อ่านออก (ต้องมาก่อนตัวกรอง)
+app.use(cors({
+    origin: vercelURL, // 👈 อนุญาตให้หน้าบ้าน Vercel เข้าถึงได้
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    credentials: true
+})); 
+
 app.use(express.json()); 
 
-// 3. ใส่เกราะป้องกัน Helmet (OWASP A05)
+// ใส่เกราะป้องกัน Helmet (OWASP A05)
 app.use(helmet()); 
 app.use(helmet.crossOriginResourcePolicy({ policy: "cross-origin" }));
 
-
-// 5. ป้องกันการยิง Request รัวๆ (OWASP A04)
+// ป้องกันการยิง Request รัวๆ (OWASP A04)
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000, 
-    max: 200, // 👈 ถ้าจะเทสให้เห็นผลไวๆ ลองเปลี่ยนเป็น 5 ดูก่อนครับ
+    max: 200, 
     message: "คุณส่งคำขอมากเกินไป กรุณารอสักครู่แล้วลองใหม่ครับ"
 });
 app.use('/api', limiter); 
+
 // ==========================================
 
 // เชื่อมต่อ Database
@@ -66,7 +70,7 @@ app.get('/', (req, res) => res.send("🚀 MyGram Backend is Running Securely!"))
 const server = http.createServer(app);
 const io = new Server(server, {
     cors: {
-        origin: "http://localhost:5173", 
+        origin: vercelURL, // 👈 แก้ให้แชทใช้บน Vercel ได้
         methods: ["GET", "POST"]
     }
 });
@@ -95,7 +99,7 @@ io.on("connection", (socket) => {
     });
 });
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 10000;
 server.listen(PORT, () => {
     console.log(`🚀 Server is running on port ${PORT} (พร้อมระบบแชทและ OWASP Security!)`);
 });
