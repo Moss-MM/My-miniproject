@@ -19,7 +19,6 @@ const Postcard = ({ post }) => {
   const handleLike = async () => {
     try {
       if (!myId) return alert("กรุณาล็อกอินก่อนครับ");
-      // 👇 ใช้ postId ที่เราดักไว้แล้ว
       await axios.put(`https://mygram-backend-yiba.onrender.com/api/posts/${postId}/like`, { userId: myId });
       setLikes(isLiked ? likes - 1 : likes + 1);
       setIsLiked(!isLiked);
@@ -29,7 +28,6 @@ const Postcard = ({ post }) => {
   const handleAddComment = async (e) => {
     if (e.key === 'Enter' && comment.trim() !== "") {
       try {
-        // 👇 ใช้ postId ที่เราดักไว้แล้ว
         const res = await axios.put(`https://mygram-backend-yiba.onrender.com/api/posts/${postId}/comment`, {
           userId: myId,
           username: loggedInUser.username,
@@ -44,7 +42,6 @@ const Postcard = ({ post }) => {
   const handleDelete = async () => {
     if (window.confirm("คุณแน่ใจนะว่าจะลบโพสต์นี้?")) {
       try {
-        // 👇 ใช้ postId ที่เราดักไว้แล้ว
         await axios.delete(`https://mygram-backend-yiba.onrender.com/api/posts/${postId}`, { data: { userId: myId } });
         window.location.reload();
       } catch (err) { console.error(err); }
@@ -54,10 +51,21 @@ const Postcard = ({ post }) => {
   return (
     <div style={{ background: '#fff', border: '1px solid #dbdbdb', borderRadius: '12px', marginBottom: '20px', maxWidth: '500px', margin: '0 auto 20px', overflow: 'hidden', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', fontFamily: 'Kanit' }}>
       <div style={{ padding: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div style={{ fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '10px' }}>
+        
+        {/* 👇 แก้ไขส่วน Header โพสต์: เพิ่มวันที่และเวลาตรงนี้ 👇 */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${post.username}`} style={{ width: '32px', height: '32px', borderRadius: '50%', background: '#f0f0f0' }} alt="avatar" />
-          {post.username}
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+            <span style={{ fontWeight: 'bold' }}>{post.username}</span>
+            {post.createdAt && (
+              <span style={{ fontSize: '12px', color: '#8e8e8e' }}>
+                {new Date(post.createdAt).toLocaleString('th-TH', { dateStyle: 'medium', timeStyle: 'short' })} น.
+              </span>
+            )}
+          </div>
         </div>
+        {/* 👆 สิ้นสุดส่วนที่แก้ไข 👆 */}
+
         {loggedInUser && (loggedInUser.username === post.username) && (
           <button onClick={handleDelete} style={{ background: 'none', border: 'none', color: '#ed4956', cursor: 'pointer', fontSize: '14px', fontWeight: 'bold' }}>ลบโพสต์</button>
         )}

@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+// 👇 1. นำเข้า Link และ useNavigate จาก react-router-dom
+import { Link, useNavigate } from 'react-router-dom'; 
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate(); // 👈 2. เรียกใช้งาน navigate
 
   const handleReset = async (e) => {
     e.preventDefault();
@@ -21,7 +24,8 @@ const ForgotPassword = () => {
         newPassword
       });
       alert(res.data.message);
-      window.location.href = '/login'; // เปลี่ยนเสร็จให้ไปหน้า Login
+      // 👇 3. ใช้ navigate แทน window.location.href เพื่อเปลี่ยนหน้าแบบไม่รีเฟรช
+      navigate('/login'); 
     } catch (err) {
       alert(err.response?.data?.message || "เกิดข้อผิดพลาด");
     } finally {
@@ -61,7 +65,10 @@ const ForgotPassword = () => {
         </form>
 
         <div style={{ marginTop: '20px', fontSize: '14px' }}>
-          <a href="/login" style={{ color: '#0095f6', textDecoration: 'none' }}>กลับไปหน้าเข้าสู่ระบบ</a>
+          {/* 👇 4. เปลี่ยนจาก <a> เป็น <Link> */}
+          <Link to="/login" style={{ color: '#0095f6', textDecoration: 'none', fontWeight: 'bold' }}>
+            ← กลับไปหน้าเข้าสู่ระบบ
+          </Link>
         </div>
       </div>
     </div>

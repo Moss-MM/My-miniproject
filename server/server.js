@@ -17,10 +17,15 @@ const app = express();
 // ==========================================
 // 🚨 ตั้งค่าความปลอดภัยและทางเชื่อม (CORS)
 // ==========================================
-const vercelURL = "https://my-miniproject-narifm78s-teetatjamjang-6880s-projects.vercel.app";
+// 👇 สร้างคลังเก็บลิงก์ Vercel ของคุณมอสทุกรูปแบบ
+const allowedOrigins = [
+    "https://my-miniproject-narifm78s-teetatjamjang-6880s-projects.vercel.app",
+    "https://my-miniproject-teetatjamjang-6880s-projects.vercel.app",
+    "https://my-miniproject-git-main-teetatjamjang-6880s-projects.vercel.app"
+];
 
 app.use(cors({
-    origin: vercelURL, // 👈 อนุญาตให้หน้าบ้าน Vercel เข้าถึงได้
+    origin: allowedOrigins, // 👈 อนุญาตให้ทุกหน้าบ้านในคลังเข้าถึงได้
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true
 })); 
@@ -70,7 +75,7 @@ app.get('/', (req, res) => res.send("🚀 MyGram Backend is Running Securely!"))
 const server = http.createServer(app);
 const io = new Server(server, {
     cors: {
-        origin: vercelURL, // 👈 แก้ให้แชทใช้บน Vercel ได้
+        origin: allowedOrigins, // 👈 แก้ให้แชทใช้บน Vercel ได้ทุกโดเมน
         methods: ["GET", "POST"]
     }
 });
