@@ -12,7 +12,6 @@ const Postcard = ({ post }) => {
 
   const [comment, setComment] = useState("");
   const [allComments, setAllComments] = useState(validComments);
-  // ใช้ post.likes ตรงๆ เพราะเรา map เป็นตัวเลขมาจากหน้า home แล้ว
   const [likes, setLikes] = useState(typeof post.likes === 'number' ? post.likes : validLikes.length);
   const [isLiked, setIsLiked] = useState(post.isLiked || validLikes.includes(myId));
 
@@ -48,10 +47,10 @@ const Postcard = ({ post }) => {
     }
   };
 
-  // 👇 ฟังก์ชันกดส่งคำขอเป็นเพื่อน 👇
+  // 👇 ฟังก์ชันกดส่งคำขอเป็นเพื่อน (เปลี่ยนเป็น /api/auth/ แล้วครับ) 👇
   const handleAddFriend = async () => {
     try {
-      await axios.put(`https://mygram-backend-yiba.onrender.com/api/users/${post.authorId}/friend-request`, { userId: myId });
+      await axios.put(`https://mygram-backend-yiba.onrender.com/api/auth/${post.authorId}/friend-request`, { userId: myId });
       alert("✅ ส่งคำขอเป็นเพื่อนไปแล้ว รอเขากดยอมรับนะ!");
     } catch (err) { 
       // ดึงข้อความ Error จากหลังบ้านมาโชว์ (เช่น เป็นเพื่อนกันอยู่แล้ว)
@@ -70,7 +69,7 @@ const Postcard = ({ post }) => {
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
               <span style={{ fontWeight: 'bold', fontSize: '15px', color: '#262626' }}>{post.username}</span>
               
-              {/* 👇 โชว์ปุ่ม "เพิ่มเพื่อน" เฉพาะโพสต์ที่ไม่ใช่ของเรา 👇 */}
+              {/* โชว์ปุ่ม "เพิ่มเพื่อน" เฉพาะโพสต์ที่ไม่ใช่ของเรา */}
               {loggedInUser && post.authorId && post.authorId !== myId && (
                  <button onClick={handleAddFriend} style={{ background: '#0095f6', color: '#fff', border: 'none', padding: '3px 10px', borderRadius: '6px', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer', transition: '0.2s' }}>
                     ➕ เพิ่มเพื่อน

@@ -8,7 +8,6 @@ const Profile = () => {
   const [username, setUsername] = useState(loggedInUser?.username || "");
   const [email, setEmail] = useState(loggedInUser?.email || "");
   
-  // 👇 แก้ตรงนี้: เปลี่ยนให้ดึงค่ามา ถ้าไม่มีให้เป็นช่องว่าง "" 👇
   const [bio, setBio] = useState(loggedInUser?.bio || "");
   const [location, setLocation] = useState(loggedInUser?.location || "");
   const [education, setEducation] = useState(loggedInUser?.education || "");
@@ -87,13 +86,13 @@ const Profile = () => {
             <div style={{ flex: '1 1 300px' }}>
                 <div style={{ ...cardStyle, padding: '25px' }}>
                     <h3 style={{ borderBottom: '3px solid #0095f6', display: 'inline-block', paddingBottom: '5px', marginBottom: '20px', color: '#1c1e21' }}>📖 เกี่ยวกับฉัน</h3>
-                    {/* 👇 ถ้าไม่มีข้อมูลให้โชว์คำว่า ยังไม่ได้เขียนคำแนะนำตัว 👇 */}
-                    <p style={{ color: '#4b4f56', lineHeight: '1.6', wordBreak: 'break-word', fontStyle: bio ? 'normal' : 'italic', color: bio ? '#4b4f56' : '#888' }}>
+                    
+                    {/* ✅ แก้ไขตรงนี้ให้แล้วครับ ลบ color ที่ซ้ำกันออกไปเรียบร้อย ✅ */}
+                    <p style={{ lineHeight: '1.6', wordBreak: 'break-word', fontStyle: bio ? 'normal' : 'italic', color: bio ? '#4b4f56' : '#888' }}>
                       {bio || "ยังไม่ได้เขียนคำแนะนำตัว..."}
                     </p>
                     
                     <div style={{ marginTop: '20px', fontSize: '14px', color: '#65676b', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                        {/* 👇 ถ้าไม่มีข้อมูลให้โชว์ว่า ยังไม่ได้ระบุ 👇 */}
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>📍 <span>อาศัยอยู่ที่: {location || <span style={{color: '#aaa', fontStyle: 'italic'}}>ยังไม่ได้ระบุ</span>}</span></div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>🎓 <span>การศึกษา: {education || <span style={{color: '#aaa', fontStyle: 'italic'}}>ยังไม่ได้ระบุ</span>}</span></div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>💻 <span>อาชีพ: {work || <span style={{color: '#aaa', fontStyle: 'italic'}}>ยังไม่ได้ระบุ</span>}</span></div>
@@ -120,7 +119,6 @@ const Profile = () => {
 
                         <div>
                             <label style={{ fontWeight: 'bold', color: '#4b4f56', fontSize: '14px' }}>คำแนะนำตัว (Bio)</label>
-                            {/* 👇 ใส่ Placeholder ไว้บอกใบ้ผู้ใช้งานแทนการใส่ Text ค้างไว้ 👇 */}
                             <textarea value={bio} onChange={(e) => setBio(e.target.value)} placeholder="แนะนำตัวให้เพื่อนๆ รู้จักหน่อยสิ..." style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #dbdbdb', marginTop: '5px', outline: 'none', boxSizing: 'border-box', fontFamily: 'Kanit', resize: 'vertical', minHeight: '80px' }} />
                         </div>
 

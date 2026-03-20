@@ -1,20 +1,20 @@
 const express = require('express');
 const router = express.Router();
 const User = require('../models/User'); 
-const bcrypt = require('bcryptjs'); // 👈 1. นำเข้าเครื่องมือเข้ารหัสลับ
+const bcrypt = require('bcryptjs');
 
-// 1. ระบบสมัครสมาชิก
+// ==========================================
+// 1. ระบบสมัครสมาชิก (Register)
+// ==========================================
 router.post('/register', async (req, res) => {
     try {
         const { username, email, password } = req.body;
         const existingUser = await User.findOne({ email });
         if (existingUser) return res.status(400).json({ message: "อีเมลนี้มีคนใช้แล้วครับ" });
 
-        // 👇 2. สร้างเกลือ (Salt) และเข้ารหัสผ่านก่อนเซฟ
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
 
-        // เปลี่ยน password เป็นตัวที่เข้ารหัสแล้ว
         const newUser = new User({ username, email, password: hashedPassword });
         await newUser.save();
         res.status(201).json({ message: "สมัครสมาชิกสำเร็จ!", user: newUser });
@@ -24,30 +24,32 @@ router.post('/register', async (req, res) => {
     }
 });
 
+// ==========================================
 // 2. ระบบเข้าสู่ระบบ (Login)
+// ==========================================
 router.post('/login', async (req, res) => {
     try {
         const { email, password } = req.body;
         const user = await User.findOne({ email });
 
-        // เช็คว่ามีอีเมลไหม
-        if (!user) {
-            return res.status(400).json({ message: "อีเมลหรือรหัสผ่านไม่ถูกต้อง" });
-        }
+        if (!user) return res.status(400).json({ message: "อีเมลหรือรหัสผ่านไม่ถูกต้อง" });
 
-        // 👇 3. ถอดรหัสผ่านใน DB มาเทียบกับที่ผู้ใช้พิมพ์มา
         const validPassword = await bcrypt.compare(password, user.password);
-        if (!validPassword) {
-            return res.status(400).json({ message: "อีเมลหรือรหัสผ่านไม่ถูกต้อง" });
-        }
+        if (!validPassword) return res.status(400).json({ message: "อีเมลหรือรหัสผ่านไม่ถูกต้อง" });
 
-        // ส่ง ID กลับไปให้หน้าบ้านด้วย (คงของเดิมไว้เป๊ะๆ)
+        // 👇 ส่งข้อมูลให้ครบ เพื่อให้ localStorage จำค่า Profile ใหม่ได้
         res.status(200).json({ 
             message: "เข้าสู่ระบบสำเร็จ!", 
             user: { 
-                id: user._id,       
+                id: user._id,      
                 username: user.username, 
-                email: user.email 
+                email: user.email,
+                bio: user.bio,
+                location: user.location,
+                education: user.education,
+                work: user.work,
+                friends: user.friends,
+                friendRequests: user.friendRequests
             }
         });
     } catch (error) {
@@ -56,16 +58,18 @@ router.post('/login', async (req, res) => {
     }
 });
 
-// 3. แก้ไขข้อมูลส่วนตัว (PUT /api/auth/update/:id)
+// ==========================================
+// 3. แก้ไขข้อมูลส่วนตัว (Update Profile)
+// ==========================================
 router.put('/update/:id', async (req, res) => {
     try {
-        const { username, email } = req.body;
+        // 👇 รับค่ามาให้ครบทุกช่อง
+        const { username, email, bio, location, education, work } = req.body;
         
-        // ค้นหาและอัปเดตข้อมูล
         const updatedUser = await User.findByIdAndUpdate(
             req.params.id, 
-            { username, email }, 
-            { new: true } // ให้คืนค่าข้อมูลตัวที่อัปเดตแล้วกลับมา
+            { username, email, bio, location, education, work }, 
+            { new: true } 
         );
 
         if (!updatedUser) return res.status(404).json("ไม่พบผู้ใช้งาน");
@@ -75,7 +79,13 @@ router.put('/update/:id', async (req, res) => {
             user: {
                 id: updatedUser._id,
                 username: updatedUser.username,
-                email: updatedUser.email
+                email: updatedUser.email,
+                bio: updatedUser.bio,
+                location: updatedUser.location,
+                education: updatedUser.education,
+                work: updatedUser.work,
+                friends: updatedUser.friends,
+                friendRequests: updatedUser.friendRequests
             }
         });
     } catch (err) {
@@ -83,16 +93,15 @@ router.put('/update/:id', async (req, res) => {
     }
 });
 
-// 4. ระบบรีเซ็ตรหัสผ่าน (PUT /api/auth/reset-password)
+// ==========================================
+// 4. ระบบรีเซ็ตรหัสผ่าน
+// ==========================================
 router.put('/reset-password', async (req, res) => {
     try {
         const { email, newPassword } = req.body;
-
-        // ค้นหาผู้ใช้จากอีเมล
         const user = await User.findOne({ email });
         if (!user) return res.status(404).json({ message: "ไม่พบอีเมลนี้ในระบบครับ" });
 
-        // 👇 4. เข้ารหัสผ่านตัวใหม่ก่อนเซฟทับของเดิม
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(newPassword, salt);
 
@@ -103,6 +112,67 @@ router.put('/reset-password', async (req, res) => {
     } catch (err) {
         res.status(500).json({ message: "เกิดข้อผิดพลาดที่ Server" });
     }
+});
+
+// ==========================================
+// 🚀 5. ระบบเพื่อน (Friend System)
+// ==========================================
+router.put('/:id/friend-request', async (req, res) => {
+  if (req.body.userId !== req.params.id) {
+    try {
+      const user = await User.findById(req.params.id); 
+      if (!user.friendRequests.includes(req.body.userId) && !user.friends.includes(req.body.userId)) {
+        await user.updateOne({ $push: { friendRequests: req.body.userId } });
+        res.status(200).json("ส่งคำขอเป็นเพื่อนสำเร็จ!");
+      } else {
+        res.status(403).json("คุณเคยส่งคำขอไปแล้ว หรือเป็นเพื่อนกันอยู่แล้ว");
+      }
+    } catch (err) { res.status(500).json(err); }
+  } else {
+    res.status(403).json("คุณส่งคำขอเป็นเพื่อนให้ตัวเองไม่ได้ครับ!");
+  }
+});
+
+router.put('/:id/accept-friend', async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id); 
+    const sender = await User.findById(req.body.userId); 
+
+    if (user.friendRequests.includes(req.body.userId)) {
+      await user.updateOne({ 
+        $pull: { friendRequests: req.body.userId }, 
+        $push: { friends: req.body.userId } 
+      });
+      await sender.updateOne({ $push: { friends: req.params.id } });
+      res.status(200).json("รับเป็นเพื่อนสำเร็จ!");
+    } else {
+      res.status(403).json("ไม่มีคำขอเป็นเพื่อนจากผู้ใช้นี้");
+    }
+  } catch (err) { res.status(500).json(err); }
+});
+
+router.put('/:id/decline-friend', async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id); 
+    if (user.friendRequests.includes(req.body.userId)) {
+      await user.updateOne({ $pull: { friendRequests: req.body.userId } });
+      res.status(200).json("ปฏิเสธคำขอเป็นเพื่อนแล้ว");
+    } else {
+      res.status(403).json("ไม่มีคำขอเป็นเพื่อนจากผู้ใช้นี้");
+    }
+  } catch (err) { res.status(500).json(err); }
+});
+
+router.get('/:id/friend-requests', async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    const requests = await Promise.all(
+      user.friendRequests.map(friendId => {
+        return User.findById(friendId).select("username profilePic _id");
+      })
+    );
+    res.status(200).json(requests);
+  } catch (err) { res.status(500).json(err); }
 });
 
 module.exports = router;
