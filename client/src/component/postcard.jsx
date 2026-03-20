@@ -5,7 +5,6 @@ const Postcard = ({ post }) => {
   const loggedInUser = JSON.parse(localStorage.getItem("user"));
   const myId = loggedInUser?.id || loggedInUser?._id;
   
-  // ป้องกัน ID โพสต์หาย (ดักทั้ง _id และ id)
   const postId = post?._id || post?.id;
 
   const validLikes = Array.isArray(post?.likes) ? post.likes : [];
@@ -13,8 +12,9 @@ const Postcard = ({ post }) => {
 
   const [comment, setComment] = useState("");
   const [allComments, setAllComments] = useState(validComments);
-  const [likes, setLikes] = useState(validLikes.length);
-  const [isLiked, setIsLiked] = useState(validLikes.includes(myId));
+  // ใช้ post.likes ตรงๆ เพราะเรา map เป็นตัวเลขมาจากหน้า home แล้ว
+  const [likes, setLikes] = useState(typeof post.likes === 'number' ? post.likes : validLikes.length);
+  const [isLiked, setIsLiked] = useState(post.isLiked || validLikes.includes(myId));
 
   const handleLike = async () => {
     try {
@@ -48,62 +48,78 @@ const Postcard = ({ post }) => {
     }
   };
 
+  // 👇 ฟังก์ชันกดส่งคำขอเป็นเพื่อน 👇
+  const handleAddFriend = async () => {
+    try {
+      await axios.put(`https://mygram-backend-yiba.onrender.com/api/users/${post.authorId}/friend-request`, { userId: myId });
+      alert("✅ ส่งคำขอเป็นเพื่อนไปแล้ว รอเขากดยอมรับนะ!");
+    } catch (err) { 
+      // ดึงข้อความ Error จากหลังบ้านมาโชว์ (เช่น เป็นเพื่อนกันอยู่แล้ว)
+      alert(err.response?.data || "เกิดข้อผิดพลาดในการส่งคำขอ"); 
+    }
+  };
+
   return (
-    <div style={{ background: '#fff', border: '1px solid #dbdbdb', borderRadius: '12px', marginBottom: '20px', maxWidth: '500px', margin: '0 auto 20px', overflow: 'hidden', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', fontFamily: 'Kanit' }}>
+    <div style={{ background: '#fff', border: '1px solid #dbdbdb', borderRadius: '15px', marginBottom: '20px', maxWidth: '100%', overflow: 'hidden', boxShadow: '0 4px 15px rgba(0,0,0,0.05)', fontFamily: 'Kanit' }}>
       
-      {/* ================= Header (ชื่อคนโพสต์ / วันที่) ================= */}
-      <div style={{ padding: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${post.username}`} style={{ width: '32px', height: '32px', borderRadius: '50%', background: '#f0f0f0' }} alt="avatar" />
+      {/* ================= Header ================= */}
+      <div style={{ padding: '15px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${post.username}`} style={{ width: '40px', height: '40px', borderRadius: '50%', background: '#f0f0f0', border: '1px solid #efefef' }} alt="avatar" />
           <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <span style={{ fontWeight: 'bold' }}>{post.username}</span>
-            {post.createdAt && (
-              <span style={{ fontSize: '12px', color: '#8e8e8e' }}>
-                {new Date(post.createdAt).toLocaleString('th-TH', { dateStyle: 'medium', timeStyle: 'short' })} น.
-              </span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <span style={{ fontWeight: 'bold', fontSize: '15px', color: '#262626' }}>{post.username}</span>
+              
+              {/* 👇 โชว์ปุ่ม "เพิ่มเพื่อน" เฉพาะโพสต์ที่ไม่ใช่ของเรา 👇 */}
+              {loggedInUser && post.authorId && post.authorId !== myId && (
+                 <button onClick={handleAddFriend} style={{ background: '#0095f6', color: '#fff', border: 'none', padding: '3px 10px', borderRadius: '6px', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer', transition: '0.2s' }}>
+                    ➕ เพิ่มเพื่อน
+                 </button>
+              )}
+            </div>
+            {post.time && (
+              <span style={{ fontSize: '12px', color: '#8e8e8e', marginTop: '2px' }}>{post.time}</span>
             )}
           </div>
         </div>
 
+        {/* ปุ่มลบโพสต์ เฉพาะโพสต์ตัวเอง */}
         {loggedInUser && (loggedInUser.username === post.username) && (
-          <button onClick={handleDelete} style={{ background: 'none', border: 'none', color: '#ed4956', cursor: 'pointer', fontSize: '14px', fontWeight: 'bold' }}>ลบโพสต์</button>
+          <button onClick={handleDelete} style={{ background: 'none', border: 'none', color: '#ed4956', cursor: 'pointer', fontSize: '13px', fontWeight: 'bold' }}>ลบโพสต์</button>
         )}
       </div>
       
-      {/* ================= Content (รูปภาพ หรือ กล่องข้อความ) ================= */}
-      {/* 👇 ตรงนี้คือจุดที่เพิ่มเงื่อนไขให้แยกระหว่าง "โพสต์มีรูป" กับ "โพสต์ข้อความเปล่าๆ" 👇 */}
+      {/* ================= Content ================= */}
       {post.mediaUrl ? (
         <div style={{ width: '100%', maxHeight: '500px', backgroundColor: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
-          {post.type === 'image' ? <img src={post.mediaUrl} style={{ width: '100%', height: 'auto', objectFit: 'contain' }} alt="post" /> : <video src={post.mediaUrl} controls style={{ width: '100%', height: 'auto', objectFit: 'contain' }} />}
+          {post.type === 'video' ? <video src={post.mediaUrl} controls style={{ width: '100%', height: 'auto', objectFit: 'contain' }} /> : <img src={post.mediaUrl} style={{ width: '100%', height: 'auto', objectFit: 'contain' }} alt="post" onError={(e) => e.target.style.display = 'none'} />}
         </div>
       ) : (
         <div style={{ width: '100%', padding: '40px 20px', backgroundColor: '#f8f9fa', textAlign: 'center', fontSize: '18px', borderTop: '1px solid #efefef', borderBottom: '1px solid #efefef', wordBreak: 'break-word', color: '#262626', boxSizing: 'border-box' }}>
-          {post.desc || post.caption}
+          {post.caption || post.desc}
         </div>
       )}
 
-      {/* ================= Footer (ปุ่มกดใจ / คอมเมนต์) ================= */}
-      <div style={{ padding: '12px' }}>
+      {/* ================= Footer ================= */}
+      <div style={{ padding: '15px' }}>
         <div style={{ display: 'flex', gap: '15px', marginBottom: '10px', alignItems: 'center' }}>
-          <span onClick={handleLike} style={{ cursor: 'pointer', fontSize: '24px' }}>{isLiked ? '❤️' : '🤍'}</span>
-          <span style={{ fontSize: '24px' }}>💬</span>
-          <span style={{ fontSize: '14px', fontWeight: 'bold' }}>{likes} likes</span>
+          <span onClick={handleLike} style={{ cursor: 'pointer', fontSize: '24px', transition: '0.2s', transform: isLiked ? 'scale(1.1)' : 'scale(1)' }}>{isLiked ? '❤️' : '🤍'}</span>
+          <span style={{ fontSize: '24px', cursor: 'pointer' }}>💬</span>
+          <span style={{ fontSize: '14px', fontWeight: 'bold', color: '#262626' }}>{likes} ถูกใจ</span>
         </div>
         
-        {/* 👇 ถ้าโพสต์มีรูป ถึงจะแสดงข้อความเล็กๆ ข้างล่างนี้ (ถ้าไม่มีรูป เราเอาไปทำเป็นกล่องใหญ่ข้างบนแล้ว เลยต้องซ่อนอันนี้) 👇 */}
         {post.mediaUrl && (
-          <div style={{ marginBottom: '8px' }}><b>{post.username}</b> {post.desc || post.caption}</div>
+          <div style={{ marginBottom: '8px', fontSize: '15px', color: '#262626' }}><b>{post.username}</b> {post.caption || post.desc}</div>
         )}
 
-        <div style={{ marginTop: '10px', fontSize: '14px', borderTop: '1px solid #fafafa', paddingTop: '10px' }}>
+        <div style={{ marginTop: '10px', fontSize: '14px', borderTop: '1px solid #efefef', paddingTop: '10px', color: '#4b4f56' }}>
           {allComments && allComments.length > 0 && allComments.map((c, i) => (
-            <div key={i} style={{ marginBottom: '4px' }}><b>{c.username}:</b> {c.text}</div>
+            <div key={i} style={{ marginBottom: '5px' }}><b>{c.username}:</b> {c.text}</div>
           ))}
         </div>
 
-        <input type="text" placeholder="เพิ่มคอมเมนต์..." value={comment} onChange={(e) => setComment(e.target.value)} onKeyPress={handleAddComment} style={{ width: '100%', border: 'none', borderTop: '1px solid #efefef', marginTop: '10px', padding: '12px 0 0 0', outline: 'none', fontFamily: 'Kanit' }} />
+        <input type="text" placeholder="เพิ่มคอมเมนต์..." value={comment} onChange={(e) => setComment(e.target.value)} onKeyPress={handleAddComment} style={{ width: '100%', border: 'none', borderTop: '1px solid #efefef', marginTop: '10px', padding: '15px 0 0 0', outline: 'none', fontFamily: 'Kanit', fontSize: '14px' }} />
       </div>
-
     </div>
   );
 };

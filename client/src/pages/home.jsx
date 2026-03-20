@@ -22,6 +22,7 @@ const Home = () => {
       const response = await axios.get('https://mygram-backend-yiba.onrender.com/api/posts');
       const realPosts = response.data.map((post) => ({
         id: post._id,              
+        authorId: post.userId?._id || post.userId, // 👈 เพิ่มบรรทัดนี้ เพื่อส่ง ID เจ้าของโพสต์ไปให้ปุ่มเพิ่มเพื่อน
         username: post.userId?.username || "ไม่ทราบชื่อผู้ใช้", 
         type: post.img && post.img.includes('.mp4') ? 'video' : 'image', 
         mediaUrl: post.img,        
