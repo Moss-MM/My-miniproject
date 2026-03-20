@@ -17,21 +17,18 @@ const app = express();
 // ==========================================
 // 🚨 ตั้งค่าความปลอดภัยและทางเชื่อม (CORS)
 // ==========================================
-// 👇 สร้างคลังเก็บลิงก์ Vercel ของคุณมอสทุกรูปแบบ (เพิ่มลิงก์ tau.vercel.app แล้ว!)
-const allowedOrigins = [
-    "https://my-miniproject-tau.vercel.app", // 👈 ตัวนี้คือพระเอกของเราที่เพิ่งเพิ่มเข้าไปครับ!
-    "https://my-miniproject-narifm78s-teetatjamjang-6880s-projects.vercel.app",
-    "https://my-miniproject-teetatjamjang-6880s-projects.vercel.app",
-    "https://my-miniproject-git-main-teetatjamjang-6880s-projects.vercel.app",
-    "http://localhost:5173", // เผื่อรันเทสหน้าบ้านในเครื่อง
-    "http://localhost:3000"
-];
 
+// 👇 ใช้สูตรนี้: อนุญาตให้ทุกเว็บที่ลงท้ายด้วย .vercel.app หรือ localhost ผ่านได้หมด! 👇
 app.use(cors({
-    origin: allowedOrigins, // 👈 อนุญาตให้ทุกหน้าบ้านในคลังเข้าถึงได้
+    origin: function (origin, callback) {
+        if (!origin || origin.endsWith('.vercel.app') || origin.includes('localhost')) {
+            return callback(null, true);
+        }
+        return callback(new Error('CORS Policy blocked this request'));
+    },
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true
-})); 
+}));
 
 app.use(express.json()); 
 
@@ -78,7 +75,7 @@ app.get('/', (req, res) => res.send("🚀 MyGram Backend is Running Securely!"))
 const server = http.createServer(app);
 const io = new Server(server, {
     cors: {
-        origin: allowedOrigins, // 👈 แก้ให้แชทใช้บน Vercel ได้ทุกโดเมน
+        origin: "*", // 👈 ปลดล็อกแชทให้ใช้บน Vercel ได้ทุกโดเมนชัวร์ๆ 100%
         methods: ["GET", "POST"]
     }
 });
