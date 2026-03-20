@@ -19,9 +19,14 @@ const Login = () => {
       });
 
       if (response.status === 200) {
-        alert("🎉 " + response.data.message);
-        localStorage.setItem('user', JSON.stringify(response.data.user));
-        navigate('/'); 
+        alert("🎉 " + (response.data.message || "เข้าสู่ระบบสำเร็จ!"));
+        
+        // 👇 แก้ไข: ดักข้อมูล user ให้ชัวร์ และเก็บลงเครื่อง
+        const userData = response.data.user ? response.data.user : response.data;
+        localStorage.setItem('user', JSON.stringify(userData));
+        
+        // 👇 แก้ไข: บังคับรีเฟรชและย้ายไปหน้า Home เพื่อให้ App.jsx อัปเดตข้อมูล
+        window.location.href = '/'; 
       }
     } catch (err) {
       const errorMessage = err.response?.data?.error || "เกิดข้อผิดพลาดในการเข้าสู่ระบบ";
@@ -73,7 +78,6 @@ const Login = () => {
           </button>
         </form>
 
-        {/* 👇 ปุ่มลืมรหัสผ่าน ย้ายเข้ามาอยู่ในกล่องนี้แล้วครับ 👇 */}
         <div style={{ marginTop: '15px', textAlign: 'center', fontSize: '14px' }}>
           <Link to="/forgot-password" style={{ color: '#0095f6', textDecoration: 'none' }}>ลืมรหัสผ่านใช่หรือไม่?</Link>
         </div>
