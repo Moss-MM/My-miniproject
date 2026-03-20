@@ -176,21 +176,47 @@ const Group = () => {
               </form>
             </div>
 
-            {/* แสดงโพสต์ในกลุ่ม */}
+            {/* 👇 แสดงโพสต์ในกลุ่ม (อัปเดต Layout ใหม่) 👇 */}
             {groupPosts.map((p) => {
                const myId = loggedInUser.id || loggedInUser._id;
                const canDelete = p.userId === myId || activeGroup.creatorId === myId; // ลบได้ถ้าเป็นคนโพสต์ หรือเป็นแอดมินกลุ่ม
                
+               // เช็คว่ามีลิงก์รูปไหม
+               const hasImg = p.img && p.img.trim() !== "";
+               
                return (
-                <div key={p._id} style={{ background: '#fff', padding: '20px', borderRadius: '12px', marginBottom: '15px', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px' }}>
-                    <div style={{ fontWeight: 'bold', color: '#0095f6' }}>สมาชิกส่งข้อความ:</div>
+                <div key={p._id} style={{ background: '#fff', borderRadius: '12px', marginBottom: '15px', border: '1px solid #dbdbdb', overflow: 'hidden' }}>
+                  
+                  {/* ส่วนหัวโพสต์ (Header) */}
+                  <div style={{ padding: '15px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #efefef' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                       <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${p.userId}`} alt="avatar" style={{ width: '32px', height: '32px', borderRadius: '50%', background: '#f0f0f0' }} />
+                       <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#262626' }}>สมาชิกกลุ่ม</div>
+                    </div>
                     {canDelete && (
-                        <button onClick={() => handleDeletePost(p._id, p.userId)} style={{ background: 'none', border: 'none', color: '#ed4956', cursor: 'pointer', fontWeight: 'bold' }}>ลบโพสต์</button>
+                        <button onClick={() => handleDeletePost(p._id, p.userId)} style={{ background: 'none', border: 'none', color: '#ed4956', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>ลบโพสต์</button>
                     )}
                   </div>
-                  <div style={{ fontSize: '16px', marginBottom: '15px', wordBreak: 'break-word' }}>{p.desc}</div>
-                  {p.img && <img src={p.img} alt="post" style={{ width: '100%', borderRadius: '8px', objectFit: 'cover' }} />}
+                  
+                  {/* ส่วนเนื้อหาโพสต์ (จัด Layout อัตโนมัติเหมือนหน้า Home) */}
+                  {hasImg ? (
+                    <div style={{ width: '100%', maxHeight: '400px', backgroundColor: '#000', display: 'flex', justifyContent: 'center' }}>
+                        {/* ใช้งาน onError ถ้าลิงก์รูปพัง ให้ซ่อนทิ้งไปเลย */}
+                        <img src={p.img} alt="post" style={{ width: '100%', objectFit: 'contain' }} onError={(e) => e.target.style.display = 'none'} />
+                    </div>
+                  ) : (
+                    <div style={{ width: '100%', padding: '30px 20px', backgroundColor: '#f8f9fa', textAlign: 'center', fontSize: '18px', borderBottom: '1px solid #efefef', wordBreak: 'break-word', color: '#262626', boxSizing: 'border-box' }}>
+                        {p.desc}
+                    </div>
+                  )}
+
+                  {/* คำบรรยายใต้ภาพ (โชว์เฉพาะถ้ามีรูป) */}
+                  {hasImg && p.desc && (
+                    <div style={{ padding: '15px', fontSize: '15px', wordBreak: 'break-word', color: '#262626' }}>
+                       {p.desc}
+                    </div>
+                  )}
+
                 </div>
               );
             })}

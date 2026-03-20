@@ -50,9 +50,9 @@ const Postcard = ({ post }) => {
 
   return (
     <div style={{ background: '#fff', border: '1px solid #dbdbdb', borderRadius: '12px', marginBottom: '20px', maxWidth: '500px', margin: '0 auto 20px', overflow: 'hidden', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', fontFamily: 'Kanit' }}>
+      
+      {/* ================= Header (ชื่อคนโพสต์ / วันที่) ================= */}
       <div style={{ padding: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        
-        {/* 👇 แก้ไขส่วน Header โพสต์: เพิ่มวันที่และเวลาตรงนี้ 👇 */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${post.username}`} style={{ width: '32px', height: '32px', borderRadius: '50%', background: '#f0f0f0' }} alt="avatar" />
           <div style={{ display: 'flex', flexDirection: 'column' }}>
@@ -64,19 +64,25 @@ const Postcard = ({ post }) => {
             )}
           </div>
         </div>
-        {/* 👆 สิ้นสุดส่วนที่แก้ไข 👆 */}
 
         {loggedInUser && (loggedInUser.username === post.username) && (
           <button onClick={handleDelete} style={{ background: 'none', border: 'none', color: '#ed4956', cursor: 'pointer', fontSize: '14px', fontWeight: 'bold' }}>ลบโพสต์</button>
         )}
       </div>
       
-      {post.mediaUrl && (
+      {/* ================= Content (รูปภาพ หรือ กล่องข้อความ) ================= */}
+      {/* 👇 ตรงนี้คือจุดที่เพิ่มเงื่อนไขให้แยกระหว่าง "โพสต์มีรูป" กับ "โพสต์ข้อความเปล่าๆ" 👇 */}
+      {post.mediaUrl ? (
         <div style={{ width: '100%', maxHeight: '500px', backgroundColor: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
           {post.type === 'image' ? <img src={post.mediaUrl} style={{ width: '100%', height: 'auto', objectFit: 'contain' }} alt="post" /> : <video src={post.mediaUrl} controls style={{ width: '100%', height: 'auto', objectFit: 'contain' }} />}
         </div>
+      ) : (
+        <div style={{ width: '100%', padding: '40px 20px', backgroundColor: '#f8f9fa', textAlign: 'center', fontSize: '18px', borderTop: '1px solid #efefef', borderBottom: '1px solid #efefef', wordBreak: 'break-word', color: '#262626', boxSizing: 'border-box' }}>
+          {post.desc || post.caption}
+        </div>
       )}
 
+      {/* ================= Footer (ปุ่มกดใจ / คอมเมนต์) ================= */}
       <div style={{ padding: '12px' }}>
         <div style={{ display: 'flex', gap: '15px', marginBottom: '10px', alignItems: 'center' }}>
           <span onClick={handleLike} style={{ cursor: 'pointer', fontSize: '24px' }}>{isLiked ? '❤️' : '🤍'}</span>
@@ -84,7 +90,10 @@ const Postcard = ({ post }) => {
           <span style={{ fontSize: '14px', fontWeight: 'bold' }}>{likes} likes</span>
         </div>
         
-        <div style={{ marginBottom: '8px' }}><b>{post.username}</b> {post.desc || post.caption}</div>
+        {/* 👇 ถ้าโพสต์มีรูป ถึงจะแสดงข้อความเล็กๆ ข้างล่างนี้ (ถ้าไม่มีรูป เราเอาไปทำเป็นกล่องใหญ่ข้างบนแล้ว เลยต้องซ่อนอันนี้) 👇 */}
+        {post.mediaUrl && (
+          <div style={{ marginBottom: '8px' }}><b>{post.username}</b> {post.desc || post.caption}</div>
+        )}
 
         <div style={{ marginTop: '10px', fontSize: '14px', borderTop: '1px solid #fafafa', paddingTop: '10px' }}>
           {allComments && allComments.length > 0 && allComments.map((c, i) => (
@@ -94,6 +103,7 @@ const Postcard = ({ post }) => {
 
         <input type="text" placeholder="เพิ่มคอมเมนต์..." value={comment} onChange={(e) => setComment(e.target.value)} onKeyPress={handleAddComment} style={{ width: '100%', border: 'none', borderTop: '1px solid #efefef', marginTop: '10px', padding: '12px 0 0 0', outline: 'none', fontFamily: 'Kanit' }} />
       </div>
+
     </div>
   );
 };
