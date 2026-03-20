@@ -5,15 +5,14 @@ import Navbar from '../component/navbar';
 const Profile = () => {
   const loggedInUser = JSON.parse(localStorage.getItem("user"));
   
-  // State สำหรับข้อมูลเดิม
   const [username, setUsername] = useState(loggedInUser?.username || "");
   const [email, setEmail] = useState(loggedInUser?.email || "");
   
-  // 👇 เพิ่ม State สำหรับข้อมูลใหม่ (Bio, ที่อยู่, การศึกษา, อาชีพ)
-  const [bio, setBio] = useState(loggedInUser?.bio || "สวัสดี! ยินดีที่ได้รู้จักทุกคนบน MyGram ตอนนี้กำลังสนุกกับการสร้างโปรเจคใหม่ๆ อยู่ครับ 🚀");
-  const [location, setLocation] = useState(loggedInUser?.location || "ประเทศไทย");
-  const [education, setEducation] = useState(loggedInUser?.education || "ม.ราชมงคลธัญบุรี (RMUTT)");
-  const [work, setWork] = useState(loggedInUser?.work || "Full-Stack Developer");
+  // 👇 แก้ตรงนี้: เปลี่ยนให้ดึงค่ามา ถ้าไม่มีให้เป็นช่องว่าง "" 👇
+  const [bio, setBio] = useState(loggedInUser?.bio || "");
+  const [location, setLocation] = useState(loggedInUser?.location || "");
+  const [education, setEducation] = useState(loggedInUser?.education || "");
+  const [work, setWork] = useState(loggedInUser?.work || "");
   
   const [loading, setLoading] = useState(false);
 
@@ -25,17 +24,15 @@ const Profile = () => {
       const res = await axios.put(`https://mygram-backend-yiba.onrender.com/api/auth/update/${loggedInUser.id || loggedInUser._id}`, {
         username,
         email,
-        bio,       // ส่งข้อมูลใหม่ไปให้หลังบ้าน
+        bio,       
         location,
         education,
         work
       });
 
-      // อัปเดตข้อมูลใน localStorage 
       localStorage.setItem("user", JSON.stringify(res.data.user || res.data));
       
       alert("🎉 บันทึกการเปลี่ยนแปลงโปรไฟล์สำเร็จ!");
-      // window.location.href = "/profile"; // รีเฟรชหน้าตัวเองเพื่อให้ข้อมูลอัปเดต
     } catch (err) {
       console.error(err);
       alert("เกิดข้อผิดพลาดในการอัปเดต");
@@ -86,16 +83,20 @@ const Profile = () => {
         {/* ======================= ส่วนเนื้อหาแบ่ง 2 ฝั่ง ======================= */}
         <div style={{ display: 'flex', gap: '25px', flexWrap: 'wrap', alignItems: 'flex-start' }}>
             
-            {/* --- ฝั่งซ้าย: ข้อมูลส่วนตัว (ดึงจาก State ทันที) --- */}
+            {/* --- ฝั่งซ้าย: ข้อมูลส่วนตัว --- */}
             <div style={{ flex: '1 1 300px' }}>
                 <div style={{ ...cardStyle, padding: '25px' }}>
                     <h3 style={{ borderBottom: '3px solid #0095f6', display: 'inline-block', paddingBottom: '5px', marginBottom: '20px', color: '#1c1e21' }}>📖 เกี่ยวกับฉัน</h3>
-                    <p style={{ color: '#4b4f56', lineHeight: '1.6', wordBreak: 'break-word' }}>{bio}</p>
+                    {/* 👇 ถ้าไม่มีข้อมูลให้โชว์คำว่า ยังไม่ได้เขียนคำแนะนำตัว 👇 */}
+                    <p style={{ color: '#4b4f56', lineHeight: '1.6', wordBreak: 'break-word', fontStyle: bio ? 'normal' : 'italic', color: bio ? '#4b4f56' : '#888' }}>
+                      {bio || "ยังไม่ได้เขียนคำแนะนำตัว..."}
+                    </p>
                     
                     <div style={{ marginTop: '20px', fontSize: '14px', color: '#65676b', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>📍 <span>อาศัยอยู่ที่: {location}</span></div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>🎓 <span>การศึกษา: {education}</span></div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>💻 <span>อาชีพ: {work}</span></div>
+                        {/* 👇 ถ้าไม่มีข้อมูลให้โชว์ว่า ยังไม่ได้ระบุ 👇 */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>📍 <span>อาศัยอยู่ที่: {location || <span style={{color: '#aaa', fontStyle: 'italic'}}>ยังไม่ได้ระบุ</span>}</span></div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>🎓 <span>การศึกษา: {education || <span style={{color: '#aaa', fontStyle: 'italic'}}>ยังไม่ได้ระบุ</span>}</span></div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>💻 <span>อาชีพ: {work || <span style={{color: '#aaa', fontStyle: 'italic'}}>ยังไม่ได้ระบุ</span>}</span></div>
                     </div>
                 </div>
             </div>
@@ -106,7 +107,6 @@ const Profile = () => {
                     <h3 style={{ marginBottom: '25px', color: '#1c1e21' }}>⚙️ ตั้งค่าและแก้ไขโปรไฟล์</h3>
                     
                     <form onSubmit={handleUpdate} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-                        
                         <div style={{ display: 'flex', gap: '15px' }}>
                           <div style={{ flex: 1 }}>
                               <label style={{ fontWeight: 'bold', color: '#4b4f56', fontSize: '14px' }}>ชื่อผู้ใช้งาน</label>
@@ -118,26 +118,26 @@ const Profile = () => {
                           </div>
                         </div>
 
-                        {/* 👇 เพิ่มฟิลด์แก้ไขเกี่ยวกับฉัน 👇 */}
                         <div>
                             <label style={{ fontWeight: 'bold', color: '#4b4f56', fontSize: '14px' }}>คำแนะนำตัว (Bio)</label>
-                            <textarea value={bio} onChange={(e) => setBio(e.target.value)} style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #dbdbdb', marginTop: '5px', outline: 'none', boxSizing: 'border-box', fontFamily: 'Kanit', resize: 'vertical', minHeight: '80px' }} />
+                            {/* 👇 ใส่ Placeholder ไว้บอกใบ้ผู้ใช้งานแทนการใส่ Text ค้างไว้ 👇 */}
+                            <textarea value={bio} onChange={(e) => setBio(e.target.value)} placeholder="แนะนำตัวให้เพื่อนๆ รู้จักหน่อยสิ..." style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #dbdbdb', marginTop: '5px', outline: 'none', boxSizing: 'border-box', fontFamily: 'Kanit', resize: 'vertical', minHeight: '80px' }} />
                         </div>
 
                         <div style={{ display: 'flex', gap: '15px' }}>
                           <div style={{ flex: 1 }}>
                               <label style={{ fontWeight: 'bold', color: '#4b4f56', fontSize: '14px' }}>อาศัยอยู่ที่</label>
-                              <input type="text" value={location} onChange={(e) => setLocation(e.target.value)} style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #dbdbdb', marginTop: '5px', outline: 'none', boxSizing: 'border-box', fontFamily: 'Kanit' }} />
+                              <input type="text" value={location} onChange={(e) => setLocation(e.target.value)} placeholder="เช่น กรุงเทพฯ, ประเทศไทย" style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #dbdbdb', marginTop: '5px', outline: 'none', boxSizing: 'border-box', fontFamily: 'Kanit' }} />
                           </div>
                           <div style={{ flex: 1 }}>
                               <label style={{ fontWeight: 'bold', color: '#4b4f56', fontSize: '14px' }}>อาชีพ</label>
-                              <input type="text" value={work} onChange={(e) => setWork(e.target.value)} style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #dbdbdb', marginTop: '5px', outline: 'none', boxSizing: 'border-box', fontFamily: 'Kanit' }} />
+                              <input type="text" value={work} onChange={(e) => setWork(e.target.value)} placeholder="เช่น นักศึกษา, ฟรีแลนซ์" style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #dbdbdb', marginTop: '5px', outline: 'none', boxSizing: 'border-box', fontFamily: 'Kanit' }} />
                           </div>
                         </div>
 
                         <div>
                             <label style={{ fontWeight: 'bold', color: '#4b4f56', fontSize: '14px' }}>การศึกษา</label>
-                            <input type="text" value={education} onChange={(e) => setEducation(e.target.value)} style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #dbdbdb', marginTop: '5px', outline: 'none', boxSizing: 'border-box', fontFamily: 'Kanit' }} />
+                            <input type="text" value={education} onChange={(e) => setEducation(e.target.value)} placeholder="เช่น มหาวิทยาลัย..." style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #dbdbdb', marginTop: '5px', outline: 'none', boxSizing: 'border-box', fontFamily: 'Kanit' }} />
                         </div>
 
                         <button 

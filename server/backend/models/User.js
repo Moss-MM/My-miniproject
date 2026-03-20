@@ -7,11 +7,11 @@ const userSchema = new mongoose.Schema({
     password: { type: String, required: true },
     profilePic: { type: String, default: "" }, 
     
-    // ข้อมูลส่วนตัว (About Me)
-    bio: { type: String, default: "สวัสดี! ฉันเพิ่งเข้าร่วม MyGram" },
-    location: { type: String, default: "ประเทศไทย" },
-    education: { type: String, default: "ม.ราชมงคลธัญบุรี (RMUTT)" },
-    work: { type: String, default: "Full-Stack Developer" },
+    // 👇 แก้ตรงนี้: เปลี่ยน default เป็นค่าว่างทั้งหมด 👇
+    bio: { type: String, default: "" },
+    location: { type: String, default: "" },
+    education: { type: String, default: "" },
+    work: { type: String, default: "" },
     
     // ระบบเพื่อน
     friends: { type: Array, default: [] }, 
