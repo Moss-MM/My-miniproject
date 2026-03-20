@@ -15,19 +15,13 @@ dotenv.config();
 const app = express();
 
 // ==========================================
-// 🚨 ตั้งค่าความปลอดภัยและทางเชื่อม (CORS)
+// 🚨 ตั้งค่าความปลอดภัยและทางเชื่อม (CORS) - ท่าไม้ตาย!
 // ==========================================
 
-// 👇 ใช้สูตรนี้: อนุญาตให้ทุกเว็บที่ลงท้ายด้วย .vercel.app หรือ localhost ผ่านได้หมด! 👇
 app.use(cors({
-    origin: function (origin, callback) {
-        if (!origin || origin.endsWith('.vercel.app') || origin.includes('localhost')) {
-            return callback(null, true);
-        }
-        return callback(new Error('CORS Policy blocked this request'));
-    },
-    methods: ["GET", "POST", "PUT", "DELETE"],
-    credentials: true
+    origin: "*", // 👈 ท่าไม้ตาย: เปิดรับทุกโดเมนในจักรวาล Vercel จะเปลี่ยนชื่ออีกกี่รอบก็เข้าได้!
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"]
 }));
 
 app.use(express.json()); 
