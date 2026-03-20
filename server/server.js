@@ -17,11 +17,14 @@ const app = express();
 // ==========================================
 // 🚨 ตั้งค่าความปลอดภัยและทางเชื่อม (CORS)
 // ==========================================
-// 👇 สร้างคลังเก็บลิงก์ Vercel ของคุณมอสทุกรูปแบบ
+// 👇 สร้างคลังเก็บลิงก์ Vercel ของคุณมอสทุกรูปแบบ (เพิ่มลิงก์ tau.vercel.app แล้ว!)
 const allowedOrigins = [
+    "https://my-miniproject-tau.vercel.app", // 👈 ตัวนี้คือพระเอกของเราที่เพิ่งเพิ่มเข้าไปครับ!
     "https://my-miniproject-narifm78s-teetatjamjang-6880s-projects.vercel.app",
     "https://my-miniproject-teetatjamjang-6880s-projects.vercel.app",
-    "https://my-miniproject-git-main-teetatjamjang-6880s-projects.vercel.app"
+    "https://my-miniproject-git-main-teetatjamjang-6880s-projects.vercel.app",
+    "http://localhost:5173", // เผื่อรันเทสหน้าบ้านในเครื่อง
+    "http://localhost:3000"
 ];
 
 app.use(cors({
