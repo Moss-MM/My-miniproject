@@ -57,23 +57,33 @@ const Home = () => {
     ));
   };
 
-  // 👇 ฟังก์ชันกดยอมรับเพื่อน
-  const handleAcceptFriend = async (senderId) => {
+// 👇 1. ฟังก์ชันกดยอมรับเพื่อน
+  const handleAcceptFriend = async (requesterId) => {
     try {
-      await axios.put(`https://mygram-backend-yiba.onrender.com/api/users/${myId}/accept-friend`, { userId: senderId });
-      // พอกดรับเสร็จ ให้เอากล่องคนนั้นออกจากหน้าจอ
-      setFriendRequests(friendRequests.filter(req => req._id !== senderId));
-      alert("🎉 รับเป็นเพื่อนเรียบร้อย!");
-    } catch (err) { console.error(err); alert("เกิดข้อผิดพลาด"); }
+      // สังเกตว่าต้องยิงไปที่ /api/auth/ นะครับ
+      await axios.put(`https://mygram-backend-yiba.onrender.com/api/auth/${myId}/accept-friend`, { 
+        userId: requesterId 
+      });
+      alert("✅ รับเป็นเพื่อนสำเร็จ!");
+      fetchFriendRequests(); // รีเฟรชรายการคำขอ
+    } catch (err) {
+      console.error(err);
+      alert("เกิดข้อผิดพลาดในการรับเพื่อน");
+    }
   };
 
-  // 👇 ฟังก์ชันกดปฏิเสธเพื่อน
-  const handleDeclineFriend = async (senderId) => {
+  // 👇 2. ฟังก์ชันกดปฏิเสธเพื่อน
+  const handleDeclineFriend = async (requesterId) => {
     try {
-      await axios.put(`https://mygram-backend-yiba.onrender.com/api/users/${myId}/decline-friend`, { userId: senderId });
-      // พอกดปฏิเสธ ก็เอากล่องคนนั้นออกจากหน้าจอเหมือนกัน
-      setFriendRequests(friendRequests.filter(req => req._id !== senderId));
-    } catch (err) { console.error(err); }
+      await axios.put(`https://mygram-backend-yiba.onrender.com/api/auth/${myId}/decline-friend`, { 
+        userId: requesterId 
+      });
+      alert("❌ ปฏิเสธคำขอแล้ว");
+      fetchFriendRequests(); // รีเฟรชรายการคำขอ
+    } catch (err) {
+      console.error(err);
+      alert("เกิดข้อผิดพลาดในการปฏิเสธเพื่อน");
+    }
   };
 
   // สไตล์สำหรับกล่องต่างๆ

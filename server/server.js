@@ -38,7 +38,7 @@ app.use(helmet.crossOriginResourcePolicy({ policy: "cross-origin" }));
 // 🛡️ ด่าน 3: Rate Limit (OWASP A04) - ป้องกันโดนยิง Request รัวๆ (Anti-DDoS / Brute Force)
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000, 
-    max: 200, 
+    max: 5000, 
     message: "คุณส่งคำขอมากเกินไป กรุณารอสักครู่แล้วลองใหม่ครับ"
 });
 app.use('/api', limiter); 
