@@ -163,16 +163,24 @@ router.put('/:id/decline-friend', async (req, res) => {
   } catch (err) { res.status(500).json(err); }
 });
 
+// ดึงรายชื่อคนขอเป็นเพื่อน
 router.get('/:id/friend-requests', async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json("ไม่พบผู้ใช้");
+
     const requests = await Promise.all(
       user.friendRequests.map(friendId => {
         return User.findById(friendId).select("username profilePic _id");
       })
     );
-    res.status(200).json(requests);
-  } catch (err) { res.status(500).json(err); }
+    
+    // 👇 แก้ตรงนี้: กรองเอาเฉพาะข้อมูลที่มีจริง กันบั๊กไอดีพัง 👇
+    const validRequests = requests.filter(req => req !== null);
+    res.status(200).json(validRequests);
+  } catch (err) { 
+    res.status(500).json(err); 
+  }
 });
 
 module.exports = router;

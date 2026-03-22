@@ -35,13 +35,14 @@ const Home = () => {
     } catch (err) { console.error("เกิดข้อผิดพลาดในการดึงโพสต์:", err); }
   };
 
-  // 👇 ฟังก์ชันดึงรายชื่อคนขอเป็นเพื่อน
+// 👇 ฟังก์ชันดึงรายชื่อคนขอเป็นเพื่อน (เพิ่มตัวกันพัง)
   const fetchFriendRequests = async () => {
     if (!myId) return;
     try {
-      // หมายเหตุ: สมมติว่าไฟล์ API User ของคุณมอสใช้ path ว่า /api/users นะครับ
-      const res = await axios.get(`https://mygram-backend-yiba.onrender.com/api/users/${myId}/friend-requests`);
-      setFriendRequests(res.data);
+      const res = await axios.get(`https://mygram-backend-yiba.onrender.com/api/auth/${myId}/friend-requests`);
+      // กรองข้อมูลเผื่อพังมาจากหลังบ้าน
+      const validReqs = res.data.filter(req => req && req._id);
+      setFriendRequests(validReqs);
     } catch (err) { console.error("ดึงคำขอเพื่อนพลาด:", err); }
   };
 
@@ -162,9 +163,13 @@ const Home = () => {
             <button style={{ width: '100%', background: '#efefef', border: 'none', padding: '8px', borderRadius: '6px', fontWeight: 'bold', cursor: 'pointer' }}>ดูรายละเอียด</button>
           </div>
 
-          {/* 👇 คำขอเป็นเพื่อน (ต่อกับ API จริงแล้ว!) 👇 */}
+          {/* 👇 คำขอเป็นเพื่อน 👇 */}
           <div style={{ ...cardStyle, padding: '20px' }}>
-             <h3 style={{ fontSize: '15px', fontWeight: 'bold', marginBottom: '15px', color: '#1c1e21', textAlign: 'center' }}>🤝 คำขอเป็นเพื่อน</h3>
+             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+                <h3 style={{ fontSize: '15px', fontWeight: 'bold', color: '#1c1e21', margin: 0 }}>🤝 คำขอเป็นเพื่อน</h3>
+                {/* 👇 เพิ่มปุ่มรีเฟรชตรงนี้ 👇 */}
+                <button onClick={fetchFriendRequests} title="รีเฟรชคำขอ" style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px' }}>🔄</button>
+             </div>
              
              {friendRequests.length === 0 ? (
                 <div style={{ textAlign: 'center', color: '#888', fontSize: '13px' }}>ยังไม่มีคำขอใหม่ในตอนนี้</div>
