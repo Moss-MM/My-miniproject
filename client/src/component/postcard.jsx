@@ -24,17 +24,37 @@ const Postcard = ({ post }) => {
     } catch (err) { console.error(err); }
   };
 
+// 👇 อัปเกรดระบบคอมเมนต์แบบ Real-time (Optimistic Update)
   const handleAddComment = async (e) => {
     if (e.key === 'Enter' && comment.trim() !== "") {
+      
+      if (!myId) return alert("กรุณาล็อกอินก่อนคอมเมนต์ครับ!");
+
+      // 1. สร้างก้อนข้อมูลคอมเมนต์ใหม่
+      const newComment = { 
+        userId: myId, 
+        username: loggedInUser.username, 
+        text: comment 
+      };
+
+      // 2. เก็บข้อมูลเก่าไว้เผื่อพัง และ อัปเดตหน้าจอทันที (หลอกตาให้ดูไว)
+      const previousComments = [...allComments];
+      setAllComments([...allComments, newComment]); 
+      setComment(""); // ล้างช่องพิมพ์ทันที
+
+      // 3. แอบส่งข้อมูลไปเซฟที่หลังบ้าน
       try {
-        const res = await axios.put(`https://mygram-backend-yiba.onrender.com/api/posts/${postId}/comment`, {
-          userId: myId,
-          username: loggedInUser.username,
-          text: comment
-        });
-        setAllComments(res.data.comments);
-        setComment("");
-      } catch (err) { console.error(err); }
+        const res = await axios.put(`https://mygram-backend-yiba.onrender.com/api/posts/${postId}/comment`, newComment);
+        
+        // ถ้าหลังบ้านใจดีส่งข้อมูลที่อัปเดตแล้วกลับมา เราก็เอามาทับให้เป๊ะอีกรอบ
+        if (res.data && res.data.comments) {
+          setAllComments(res.data.comments);
+        }
+      } catch (err) { 
+        console.error("คอมเมนต์พัง:", err); 
+        alert("เซิร์ฟเวอร์มีปัญหา ส่งคอมเมนต์ไม่สำเร็จครับ 😥");
+        setAllComments(previousComments); // ถ้าพัง ให้ดึงคอมเมนต์เก่ากลับมาโชว์
+      }
     }
   };
 

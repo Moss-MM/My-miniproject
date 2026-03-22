@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const Post = require('../models/Post'); // ดึงโกดัง Post มาใช้
+const Post = require('../models/Post'); 
 
 // ==========================================
 // 1. สร้างโพสต์ใหม่ (POST /api/posts)
@@ -17,11 +17,10 @@ router.post('/', async (req, res) => {
 });
 
 // ==========================================
-// 2. ดึงโพสต์ทั้งหมดไปโชว์หน้าฟีด (GET /api/posts) - อัปเกรดแล้ว!
+// 2. ดึงโพสต์ทั้งหมดไปโชว์หน้าฟีด (GET /api/posts)
 // ==========================================
 router.get('/', async (req, res) => {
     try {
-        // ใช้ .populate เพื่อดึงชื่อผู้ใช้ (username) มาด้วย
         const posts = await Post.find()
             .sort({ createdAt: -1 })
             .populate('userId', 'username email'); 
@@ -32,6 +31,7 @@ router.get('/', async (req, res) => {
         res.status(500).json({ error: "เกิดข้อผิดพลาดในการดึงข้อมูลโพสต์" });
     }
 });
+
 // ==========================================
 // 3. ลบโพสต์ตาม ID (DELETE /api/posts/:id)
 // ==========================================
@@ -49,32 +49,15 @@ router.delete('/:id', async (req, res) => {
         res.status(500).json({ error: "เกิดข้อผิดพลาดในการลบโพสต์จาก Server" });
     }
 });
-// ==========================================
-// 4. เพิ่มคอมเมนต์ในโพสต์ (PUT /api/posts/:id/comment)
-// ==========================================
-router.put('/:id/comment', async (req, res) => {
-    try {
-        const post = await Post.findById(req.params.id);
-        const newComment = {
-            userId: req.body.userId,
-            username: req.body.username,
-            text: req.body.text
-        };
 
-        // สั่งให้ดัน (push) คอมเมนต์ใหม่เข้าไปในอาเรย์
-        post.comments.push(newComment);
-        await post.save();
-
-        res.status(200).json({ message: "คอมเมนต์สำเร็จ!", comments: post.comments });
-    } catch (error) {
-        res.status(500).json(error);
-    }
-});
-//ระบบไลก์และยกเลิกไลก์ (PUT /api/posts/:id/like)
-// 1. กดไลก์ หรือ เลิกกดไลก์ (PUT /api/posts/:id/like)
+// ==========================================
+// 4. กดไลก์ หรือ เลิกกดไลก์ (PUT /api/posts/:id/like)
+// ==========================================
 router.put('/:id/like', async (req, res) => {
     try {
         const post = await Post.findById(req.params.id);
+        if (!post) return res.status(404).json("ไม่พบโพสต์");
+
         if (!post.likes.includes(req.body.userId)) {
             await post.updateOne({ $push: { likes: req.body.userId } });
             res.status(200).json("กดไลก์เรียบร้อย");
@@ -87,29 +70,37 @@ router.put('/:id/like', async (req, res) => {
     }
 });
 
-// 2. เพิ่มคอมเมนต์ (PUT /api/posts/:id/comment)
+// ==========================================
+// 5. เพิ่มคอมเมนต์ (PUT /api/posts/:id/comment) - แก้บั๊กซ้ำซ้อนแล้ว!
+// ==========================================
 router.put('/:id/comment', async (req, res) => {
     try {
         const post = await Post.findById(req.params.id);
+        if (!post) return res.status(404).json("ไม่พบโพสต์");
+
         const newComment = {
             userId: req.body.userId,
             username: req.body.username,
             text: req.body.text
         };
+
+        // สั่งให้ดัน (push) คอมเมนต์ใหม่เข้าไปในอาเรย์
         post.comments.push(newComment);
         await post.save();
-        res.status(200).json(post);
-    } catch (err) {
-        res.status(500).json(err);
+
+        // ส่งเฉพาะก้อน comments กลับไปให้หน้าบ้านอัปเดตแบบเรียลไทม์
+        res.status(200).json({ comments: post.comments });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: "เกิดข้อผิดพลาดในการคอมเมนต์" });
     }
 });
 
 // ==========================================
-// ดึงโพสต์เฉพาะที่อยู่ในกลุ่ม (Group Feed)
+// 6. ดึงโพสต์เฉพาะที่อยู่ในกลุ่ม (Group Feed)
 // ==========================================
 router.get('/group/:groupId', async (req, res) => {
     try {
-        // หาโพสต์ทั้งหมดที่มี groupId ตรงกับที่ขอมา และเรียงจากใหม่ไปเก่า
         const posts = await Post.find({ groupId: req.params.groupId }).sort({ createdAt: -1 });
         res.status(200).json(posts);
     } catch (err) { 
@@ -117,4 +108,4 @@ router.get('/group/:groupId', async (req, res) => {
     }
 });
 
-module.exports = router; // ส่งออกไปให้ server.js ใช้งาน
+module.exports = router;
