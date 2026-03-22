@@ -47,13 +47,13 @@ const limiter = rateLimit({
 app.use('/api', limiter); 
 
 // ด่าน 3: Mongo Sanitize (OWASP A03) - ป้องกันการเจาะฐานข้อมูล (NoSQL Injection)
-app.use(mongoSanitize());
+app.use('/api', mongoSanitize());
 
 // ด่าน 4: XSS Clean (OWASP A03) - ป้องกันการฝังสคริปต์ไวรัสข้ามไซต์ (Cross-Site Scripting)
-app.use(xss());
+app.use('/api', xss());
 
 // ด่าน 5: HPP - ป้องกันการป่วนเซิร์ฟเวอร์ด้วย Parameter ซ้ำซ้อน (HTTP Parameter Pollution)
-app.use(hpp());
+app.use('/api', hpp());
 
 
 // ==========================================
