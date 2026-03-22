@@ -10,10 +10,12 @@ const Postcard = ({ post }) => {
   const validLikes = Array.isArray(post?.likes) ? post.likes : [];
   const validComments = Array.isArray(post?.comments) ? post.comments : [];
 
+  // 👇 ตัวแปร State ทั้งหมด ต้องอยู่ตรงนี้! (ในปีกกาของ Postcard)
   const [comment, setComment] = useState("");
   const [allComments, setAllComments] = useState(validComments);
   const [likes, setLikes] = useState(typeof post.likes === 'number' ? post.likes : validLikes.length);
   const [isLiked, setIsLiked] = useState(post.isLiked || validLikes.includes(myId));
+  const [isRequested, setIsRequested] = useState(false); // 👈 เพิ่มชิปความจำให้ปุ่มตรงนี้
 
   const handleLike = async () => {
     try {
@@ -24,36 +26,30 @@ const Postcard = ({ post }) => {
     } catch (err) { console.error(err); }
   };
 
-// 👇 อัปเกรดระบบคอมเมนต์แบบ Real-time (Optimistic Update)
+  // คอมเมนต์แบบ Real-time
   const handleAddComment = async (e) => {
     if (e.key === 'Enter' && comment.trim() !== "") {
-      
       if (!myId) return alert("กรุณาล็อกอินก่อนคอมเมนต์ครับ!");
 
-      // 1. สร้างก้อนข้อมูลคอมเมนต์ใหม่
       const newComment = { 
         userId: myId, 
         username: loggedInUser.username, 
         text: comment 
       };
 
-      // 2. เก็บข้อมูลเก่าไว้เผื่อพัง และ อัปเดตหน้าจอทันที (หลอกตาให้ดูไว)
       const previousComments = [...allComments];
       setAllComments([...allComments, newComment]); 
-      setComment(""); // ล้างช่องพิมพ์ทันที
+      setComment(""); 
 
-      // 3. แอบส่งข้อมูลไปเซฟที่หลังบ้าน
       try {
         const res = await axios.put(`https://mygram-backend-yiba.onrender.com/api/posts/${postId}/comment`, newComment);
-        
-        // ถ้าหลังบ้านใจดีส่งข้อมูลที่อัปเดตแล้วกลับมา เราก็เอามาทับให้เป๊ะอีกรอบ
         if (res.data && res.data.comments) {
           setAllComments(res.data.comments);
         }
       } catch (err) { 
         console.error("คอมเมนต์พัง:", err); 
         alert("เซิร์ฟเวอร์มีปัญหา ส่งคอมเมนต์ไม่สำเร็จครับ 😥");
-        setAllComments(previousComments); // ถ้าพัง ให้ดึงคอมเมนต์เก่ากลับมาโชว์
+        setAllComments(previousComments); 
       }
     }
   };
@@ -67,13 +63,13 @@ const Postcard = ({ post }) => {
     }
   };
 
-  // 👇 ฟังก์ชันกดส่งคำขอเป็นเพื่อน (เปลี่ยนเป็น /api/auth/ แล้วครับ) 👇
+  // ฟังก์ชันกดส่งคำขอเป็นเพื่อน
   const handleAddFriend = async () => {
     try {
       await axios.put(`https://mygram-backend-yiba.onrender.com/api/auth/${post.authorId}/friend-request`, { userId: myId });
       alert("✅ ส่งคำขอเป็นเพื่อนไปแล้ว รอเขากดยอมรับนะ!");
+      setIsRequested(true); // 👈 สั่งให้ React จำว่ากดขอไปแล้ว!
     } catch (err) { 
-      // ดึงข้อความ Error จากหลังบ้านมาโชว์ (เช่น เป็นเพื่อนกันอยู่แล้ว)
       alert(err.response?.data || "เกิดข้อผิดพลาดในการส่งคำขอ"); 
     }
   };
@@ -89,10 +85,24 @@ const Postcard = ({ post }) => {
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
               <span style={{ fontWeight: 'bold', fontSize: '15px', color: '#262626' }}>{post.username}</span>
               
-              {/* โชว์ปุ่ม "เพิ่มเพื่อน" เฉพาะโพสต์ที่ไม่ใช่ของเรา */}
+              {/* 👇 โชว์ปุ่ม "เพิ่มเพื่อน" และเปลี่ยนสีเมื่อกดแล้ว */}
               {loggedInUser && post.authorId && post.authorId !== myId && (
-                 <button onClick={handleAddFriend} style={{ background: '#0095f6', color: '#fff', border: 'none', padding: '3px 10px', borderRadius: '6px', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer', transition: '0.2s' }}>
-                    ➕ เพิ่มเพื่อน
+                 <button 
+                   onClick={handleAddFriend} 
+                   disabled={isRequested} // 👈 ปิดไม่ให้กดซ้ำ
+                   style={{ 
+                     background: isRequested ? '#efefef' : '#0095f6', 
+                     color: isRequested ? '#8e8e8e' : '#fff', 
+                     border: 'none', 
+                     padding: '3px 10px', 
+                     borderRadius: '6px', 
+                     fontSize: '12px', 
+                     fontWeight: 'bold', 
+                     cursor: isRequested ? 'default' : 'pointer', 
+                     transition: '0.2s' 
+                   }}
+                 >
+                   {isRequested ? '⏳ รอยืนยัน' : '➕ เพิ่มเพื่อน'}
                  </button>
               )}
             </div>
