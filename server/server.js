@@ -9,8 +9,7 @@ const { Server } = require('socket.io');
 // --- แพ็กเกจความปลอดภัย (OWASP) ---
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
-const xss = require('xss-clean');
-// ❌ ลบ mongoSanitize และ hpp ออกไปเลยครับ เพราะมันคือตัวการทำเซิร์ฟเวอร์พัง!
+// ❌ ลบ xss-clean ออกไปเลยครับ!
 
 dns.setServers(["8.8.8.8", "1.1.1.1"]);
 dotenv.config();
@@ -18,41 +17,34 @@ dotenv.config();
 const app = express();
 
 // ==========================================
-// 🌐 1. ตั้งค่าการเชื่อมต่อ (CORS) -> นับเป็น 1 ในด่านความปลอดภัย (Access Control)
+// 🛡️ 1. CORS Policy (ด่าน 1: ป้องกันคนนอกเข้าถึง API ตามอำเภอใจ)
 // ==========================================
 app.use(cors({
-    origin: "*", // เปิดรับทุกโดเมนจาก Vercel
+    origin: "*", 
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"]
 }));
 
-// อ่านค่า JSON จาก Request 
 app.use(express.json()); 
 
 // ==========================================
-// 🛡️ 2. ตั้งค่าความปลอดภัยเพิ่มเติม (OWASP Top 10)
+// 🛡️ ตั้งค่าความปลอดภัย (OWASP Top 10) เพิ่มเติม
 // ==========================================
 
-// ด่าน 2: Helmet (OWASP A05) - ซ่อนข้อมูล Server และตั้งค่า HTTP Headers ให้ปลอดภัย
+// 🛡️ ด่าน 2: Helmet (OWASP A05) - ซ่อนข้อมูล Server ป้องกันการโดนแสกนช่องโหว่
 app.use(helmet()); 
 app.use(helmet.crossOriginResourcePolicy({ policy: "cross-origin" }));
 
-// ด่าน 3: Rate Limit (OWASP A04) - ป้องกันคนยิง Request รัวๆ (Anti-DDoS / Brute Force)
+// 🛡️ ด่าน 3: Rate Limit (OWASP A04) - ป้องกันโดนยิง Request รัวๆ (Anti-DDoS / Brute Force)
 const limiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 นาที
-    max: 200, // ห้ามเกิน 200 ครั้ง
+    windowMs: 15 * 60 * 1000, 
+    max: 200, 
     message: "คุณส่งคำขอมากเกินไป กรุณารอสักครู่แล้วลองใหม่ครับ"
 });
 app.use('/api', limiter); 
 
-// ด่าน 4: XSS Clean (OWASP A03) - ป้องกันการฝังสคริปต์ไวรัสข้ามไซต์ (Cross-Site Scripting)
-app.use('/api', xss());
-
-// 🛡️ ด่าน 5: Bcrypt (OWASP A07) - ระบบเข้ารหัสผ่านซับซ้อน (ฝังอยู่ในไฟล์ authRoutes.js แล้ว!)
-
-
 // ==========================================
-// 🗄️ 3. เชื่อมต่อ Database (MongoDB)
+// 🗄️ เชื่อมต่อ Database (MongoDB)
 // ==========================================
 async function connectDB() {
     try {
@@ -64,9 +56,8 @@ async function connectDB() {
 }
 connectDB();
 
-
 // ==========================================
-// 🛤️ 4. ตั้งค่าเส้นทาง API (Routers)
+// 🛤️ ตั้งค่าเส้นทาง API (Routers)
 // ==========================================
 const authRoutes = require('./backend/routers/authRoutes'); 
 const postRoutes = require('./backend/routers/PostRouters'); 
@@ -78,11 +69,10 @@ app.use('/api/posts', postRoutes);
 app.use('/api/messages', messageRoutes); 
 app.use('/api/groups', groupRoutes); 
 
-app.get('/', (req, res) => res.send("🚀 MyGram Backend is Running Securely with OWASP!"));
-
+app.get('/', (req, res) => res.send("🚀 MyGram Backend is Running Securely!"));
 
 // ==========================================
-// 💬 5. ระบบแชทแบบเรียลไทม์ (Socket.io)
+// 💬 ระบบแชทแบบเรียลไทม์ (Socket.io)
 // ==========================================
 const server = http.createServer(app);
 const io = new Server(server, {
@@ -116,8 +106,7 @@ io.on("connection", (socket) => {
     });
 });
 
-// เริ่มรันเซิร์ฟเวอร์
 const PORT = process.env.PORT || 10000;
 server.listen(PORT, () => {
-    console.log(`🚀 Server is running on port ${PORT} (พร้อมระบบแชทและ OWASP Security!)`);
+    console.log(`🚀 Server is running on port ${PORT}`);
 });
