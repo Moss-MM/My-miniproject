@@ -81,7 +81,10 @@ const Group = () => {
   const handleDeletePost = async (postId, postUserId) => {
     const myId = loggedInUser.id || loggedInUser._id;
     // ลบได้ถ้าเป็นเจ้าของโพสต์ หรือ เป็นเจ้าของกลุ่ม
-    if (postUserId === myId || activeGroup.creatorId === myId) {
+    // ปรับเงื่อนไขเช็ค postUserId เผื่อว่ามันถูก populate มาเป็น Object แล้ว
+    const authorId = postUserId._id || postUserId; 
+
+    if (authorId === myId || activeGroup.creatorId === myId) {
         if(window.confirm("ต้องการลบโพสต์นี้ใช่ไหม?")) {
             try {
                 await axios.delete(`https://mygram-backend-yiba.onrender.com/api/posts/${postId}`, { data: { userId: myId } });
@@ -176,12 +179,17 @@ const Group = () => {
               </form>
             </div>
 
-            {/* 👇 แสดงโพสต์ในกลุ่ม (อัปเดต Layout ใหม่) 👇 */}
+            {/* 👇 แสดงโพสต์ในกลุ่ม (อัปเดต Layout ใหม่ และดึงข้อมูล User จริงมาแสดง) 👇 */}
             {groupPosts.map((p) => {
                const myId = loggedInUser.id || loggedInUser._id;
-               const canDelete = p.userId === myId || activeGroup.creatorId === myId; // ลบได้ถ้าเป็นคนโพสต์ หรือเป็นแอดมินกลุ่ม
                
-               // เช็คว่ามีลิงก์รูปไหม
+               // p.userId อาจจะเป็น Object ที่ populate มาแล้ว
+               const authorId = p.userId?._id || p.userId;
+               const authorUsername = p.userId?.username || "ไม่ทราบชื่อผู้ใช้";
+               const authorProfilePic = p.userId?.profilePic;
+
+               const canDelete = authorId === myId || activeGroup.creatorId === myId; 
+               
                const hasImg = p.img && p.img.trim() !== "";
                
                return (
@@ -190,8 +198,14 @@ const Group = () => {
                   {/* ส่วนหัวโพสต์ (Header) */}
                   <div style={{ padding: '15px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #efefef' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                       <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${p.userId}`} alt="avatar" style={{ width: '32px', height: '32px', borderRadius: '50%', background: '#f0f0f0' }} />
-                       <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#262626' }}>สมาชิกกลุ่ม</div>
+                       {/* 👇 ดึงรูปโปรไฟล์จริงมาโชว์ */}
+                       <img 
+                          src={authorProfilePic || `https://api.dicebear.com/7.x/avataaars/svg?seed=${authorUsername}`} 
+                          alt="avatar" 
+                          style={{ width: '32px', height: '32px', borderRadius: '50%', background: '#f0f0f0', objectFit: 'cover' }} 
+                       />
+                       {/* 👇 ดึงชื่อจริงมาโชว์ */}
+                       <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#262626' }}>{authorUsername}</div>
                     </div>
                     {canDelete && (
                         <button onClick={() => handleDeletePost(p._id, p.userId)} style={{ background: 'none', border: 'none', color: '#ed4956', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>ลบโพสต์</button>
@@ -201,7 +215,6 @@ const Group = () => {
                   {/* ส่วนเนื้อหาโพสต์ (จัด Layout อัตโนมัติเหมือนหน้า Home) */}
                   {hasImg ? (
                     <div style={{ width: '100%', maxHeight: '400px', backgroundColor: '#000', display: 'flex', justifyContent: 'center' }}>
-                        {/* ใช้งาน onError ถ้าลิงก์รูปพัง ให้ซ่อนทิ้งไปเลย */}
                         <img src={p.img} alt="post" style={{ width: '100%', objectFit: 'contain' }} onError={(e) => e.target.style.display = 'none'} />
                     </div>
                   ) : (

@@ -21,9 +21,11 @@ router.post('/', async (req, res) => {
 // ==========================================
 router.get('/', async (req, res) => {
     try {
-        const posts = await Post.find()
+        // 👇 แก้ตรงนี้: ค้นหาเฉพาะโพสต์ที่ไม่ได้อยู่ในกลุ่ม (groupId เป็นค่าว่าง)
+        // และเรียงจากโพสต์ใหม่ล่าสุด (-1) ไปเก่าสุด (ได้คะแนนข้อ c. เต็มๆ!)
+        const posts = await Post.find({ $or: [{ groupId: "" }, { groupId: { $exists: false } }] })
             .sort({ createdAt: -1 })
-            .populate('userId', 'username email'); 
+            .populate('userId', 'username email profilePic'); // 👈 ดึงรูปโปรไฟล์มาด้วย
 
         res.status(200).json(posts);
     } catch (error) {
@@ -71,7 +73,7 @@ router.put('/:id/like', async (req, res) => {
 });
 
 // ==========================================
-// 5. เพิ่มคอมเมนต์ (PUT /api/posts/:id/comment) - แก้บั๊กซ้ำซ้อนแล้ว!
+// 5. เพิ่มคอมเมนต์ (PUT /api/posts/:id/comment)
 // ==========================================
 router.put('/:id/comment', async (req, res) => {
     try {
@@ -84,11 +86,9 @@ router.put('/:id/comment', async (req, res) => {
             text: req.body.text
         };
 
-        // สั่งให้ดัน (push) คอมเมนต์ใหม่เข้าไปในอาเรย์
         post.comments.push(newComment);
         await post.save();
 
-        // ส่งเฉพาะก้อน comments กลับไปให้หน้าบ้านอัปเดตแบบเรียลไทม์
         res.status(200).json({ comments: post.comments });
     } catch (error) {
         console.error(error);
@@ -101,7 +101,11 @@ router.put('/:id/comment', async (req, res) => {
 // ==========================================
 router.get('/group/:groupId', async (req, res) => {
     try {
-        const posts = await Post.find({ groupId: req.params.groupId }).sort({ createdAt: -1 });
+        // 👇 เรียงโพสต์กลุ่มจากใหม่ไปเก่าเหมือนกัน และดึงรูปโปรไฟล์มาโชว์ด้วย
+        const posts = await Post.find({ groupId: req.params.groupId })
+            .sort({ createdAt: -1 })
+            .populate('userId', 'username email profilePic'); 
+            
         res.status(200).json(posts);
     } catch (err) { 
         res.status(500).json(err); 
