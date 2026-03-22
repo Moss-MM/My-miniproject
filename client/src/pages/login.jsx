@@ -21,17 +21,18 @@ const Login = () => {
       if (response.status === 200) {
         alert("🎉 " + (response.data.message || "เข้าสู่ระบบสำเร็จ!"));
         
-        // 👇 แก้ไข: ดักข้อมูล user ให้ชัวร์ และเก็บลงเครื่อง
         const userData = response.data.user ? response.data.user : response.data;
         localStorage.setItem('user', JSON.stringify(userData));
         
-        // 👇 แก้ไข: บังคับรีเฟรชและย้ายไปหน้า Home เพื่อให้ App.jsx อัปเดตข้อมูล
         window.location.href = '/'; 
       }
     } catch (err) {
-      const errorMessage = err.response?.data?.error || "เกิดข้อผิดพลาดในการเข้าสู่ระบบ";
-      alert("❌ เข้าสู่ระบบไม่สำเร็จ: " + errorMessage);
+      // 👇 แก้ไข: ดักจับคำว่า 'message' ที่ส่งมาจากหลังบ้านให้ถูกต้อง
+      // และเพิ่มข้อความบอกผู้ใช้เผื่อ Render กำลังตื่นนอน
+      const errorMessage = err.response?.data?.message || err.response?.data?.error || "เซิร์ฟเวอร์กำลังตื่นนอน... รบกวนกดล็อกอินอีกครั้งครับ!";
+      alert("❌ " + errorMessage);
     } finally {
+      // 👇 ปลดล็อกปุ่มเสมอ ไม่ว่าจะสำเร็จหรือพัง
       setLoading(false);
     }
   };
@@ -74,7 +75,7 @@ const Login = () => {
               fontFamily: 'Kanit'
             }}
           >
-            {loading ? 'กำลังเข้าสู่ระบบ...' : 'เข้าสู่ระบบ'}
+            {loading ? 'กำลังปลุกเซิร์ฟเวอร์...' : 'เข้าสู่ระบบ'}
           </button>
         </form>
 
