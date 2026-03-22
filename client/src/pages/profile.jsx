@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Navbar from '../component/navbar';
 
 const Profile = () => {
   const loggedInUser = JSON.parse(localStorage.getItem("user"));
+  const myId = loggedInUser?.id || loggedInUser?._id;
   
   const [username, setUsername] = useState(loggedInUser?.username || "");
   const [email, setEmail] = useState(loggedInUser?.email || "");
@@ -15,12 +16,40 @@ const Profile = () => {
   
   const [loading, setLoading] = useState(false);
 
+  // 👇 1. เพิ่ม State สำหรับเก็บสถิติของจริง 👇
+  const [postCount, setPostCount] = useState(0);
+  const [totalLikes, setTotalLikes] = useState(0);
+
+  // 👇 2. ดึงโพสต์ทั้งหมดมากรองหาเฉพาะของเรา เพื่อนับจำนวน 👇
+  useEffect(() => {
+    const fetchMyStats = async () => {
+      try {
+        const res = await axios.get('https://mygram-backend-yiba.onrender.com/api/posts');
+        
+        // กรองเอาเฉพาะโพสต์ที่เป็นของเรา
+        const myPosts = res.data.filter(post => (post.userId?._id || post.userId) === myId);
+        
+        // อัปเดตจำนวนโพสต์
+        setPostCount(myPosts.length);
+
+        // นับยอดไลก์รวมจากทุกโพสต์ของเรา
+        const likes = myPosts.reduce((sum, post) => sum + (post.likes?.length || 0), 0);
+        setTotalLikes(likes);
+
+      } catch (err) {
+        console.error("ดึงสถิติพลาด:", err);
+      }
+    };
+
+    if (myId) fetchMyStats();
+  }, [myId]);
+
   const handleUpdate = async (e) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      const res = await axios.put(`https://mygram-backend-yiba.onrender.com/api/auth/update/${loggedInUser.id || loggedInUser._id}`, {
+      const res = await axios.put(`https://mygram-backend-yiba.onrender.com/api/auth/update/${myId}`, {
         username,
         email,
         bio,       
@@ -72,9 +101,10 @@ const Profile = () => {
              <p style={{ margin: 0, color: '#65676b', fontSize: '15px' }}>{email || "ยังไม่ได้ตั้งค่าอีเมล"}</p>
              
              <div style={{ display: 'flex', gap: '40px', marginTop: '20px', borderTop: '1px solid #efefef', paddingTop: '20px', width: '100%', justifyContent: 'center' }}>
-                <div style={{ textAlign: 'center' }}><div style={{ fontWeight: 'bold', fontSize: '22px', color: '#1c1e21' }}>15</div><div style={{ fontSize: '13px', color: '#888' }}>โพสต์ทั้งหมด</div></div>
+                {/* 👇 3. เปลี่ยนตัวเลขหลอก เป็น State ของจริง 👇 */}
+                <div style={{ textAlign: 'center' }}><div style={{ fontWeight: 'bold', fontSize: '22px', color: '#1c1e21' }}>{postCount}</div><div style={{ fontSize: '13px', color: '#888' }}>โพสต์ทั้งหมด</div></div>
                 <div style={{ textAlign: 'center' }}><div style={{ fontWeight: 'bold', fontSize: '22px', color: '#1c1e21' }}>{loggedInUser?.friends?.length || 0}</div><div style={{ fontSize: '13px', color: '#888' }}>เพื่อน</div></div>
-                <div style={{ textAlign: 'center' }}><div style={{ fontWeight: 'bold', fontSize: '22px', color: '#1c1e21' }}>1.2k</div><div style={{ fontSize: '13px', color: '#888' }}>ถูกใจ</div></div>
+                <div style={{ textAlign: 'center' }}><div style={{ fontWeight: 'bold', fontSize: '22px', color: '#1c1e21' }}>{totalLikes}</div><div style={{ fontSize: '13px', color: '#888' }}>ถูกใจ</div></div>
              </div>
           </div>
         </div>
@@ -87,7 +117,6 @@ const Profile = () => {
                 <div style={{ ...cardStyle, padding: '25px' }}>
                     <h3 style={{ borderBottom: '3px solid #0095f6', display: 'inline-block', paddingBottom: '5px', marginBottom: '20px', color: '#1c1e21' }}>📖 เกี่ยวกับฉัน</h3>
                     
-                    {/* ✅ แก้ไขตรงนี้ให้แล้วครับ ลบ color ที่ซ้ำกันออกไปเรียบร้อย ✅ */}
                     <p style={{ lineHeight: '1.6', wordBreak: 'break-word', fontStyle: bio ? 'normal' : 'italic', color: bio ? '#4b4f56' : '#888' }}>
                       {bio || "ยังไม่ได้เขียนคำแนะนำตัว..."}
                     </p>
