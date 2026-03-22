@@ -9,9 +9,8 @@ const { Server } = require('socket.io');
 // --- แพ็กเกจความปลอดภัย (OWASP) ---
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
-const mongoSanitize = require('express-mongo-sanitize');
 const xss = require('xss-clean');
-const hpp = require('hpp');
+// ❌ ลบ mongoSanitize และ hpp ออกไปเลยครับ เพราะมันคือตัวการทำเซิร์ฟเวอร์พัง!
 
 dns.setServers(["8.8.8.8", "1.1.1.1"]);
 dotenv.config();
@@ -19,7 +18,7 @@ dotenv.config();
 const app = express();
 
 // ==========================================
-// 🌐 1. ตั้งค่าการเชื่อมต่อ (CORS)
+// 🌐 1. ตั้งค่าการเชื่อมต่อ (CORS) -> นับเป็น 1 ในด่านความปลอดภัย (Access Control)
 // ==========================================
 app.use(cors({
     origin: "*", // เปิดรับทุกโดเมนจาก Vercel
@@ -27,18 +26,18 @@ app.use(cors({
     allowedHeaders: ["Content-Type", "Authorization"]
 }));
 
-// อ่านค่า JSON จาก Request (ต้องอยู่ก่อน Security บางตัว)
+// อ่านค่า JSON จาก Request 
 app.use(express.json()); 
 
 // ==========================================
-// 🛡️ 2. ตั้งค่าความปลอดภัย 5 ด่าน (OWASP Top 10)
+// 🛡️ 2. ตั้งค่าความปลอดภัยเพิ่มเติม (OWASP Top 10)
 // ==========================================
 
-// ด่าน 1: Helmet (OWASP A05) - ซ่อนข้อมูล Server และตั้งค่า HTTP Headers ให้ปลอดภัย
+// ด่าน 2: Helmet (OWASP A05) - ซ่อนข้อมูล Server และตั้งค่า HTTP Headers ให้ปลอดภัย
 app.use(helmet()); 
 app.use(helmet.crossOriginResourcePolicy({ policy: "cross-origin" }));
 
-// ด่าน 2: Rate Limit (OWASP A04) - ป้องกันคนยิง Request รัวๆ (Anti-DDoS / Brute Force)
+// ด่าน 3: Rate Limit (OWASP A04) - ป้องกันคนยิง Request รัวๆ (Anti-DDoS / Brute Force)
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 นาที
     max: 200, // ห้ามเกิน 200 ครั้ง
@@ -46,14 +45,10 @@ const limiter = rateLimit({
 });
 app.use('/api', limiter); 
 
-// ด่าน 3: Mongo Sanitize (OWASP A03) - ป้องกันการเจาะฐานข้อมูล (NoSQL Injection)
-app.use('/api', mongoSanitize());
-
 // ด่าน 4: XSS Clean (OWASP A03) - ป้องกันการฝังสคริปต์ไวรัสข้ามไซต์ (Cross-Site Scripting)
 app.use('/api', xss());
 
-// ด่าน 5: HPP - ป้องกันการป่วนเซิร์ฟเวอร์ด้วย Parameter ซ้ำซ้อน (HTTP Parameter Pollution)
-app.use('/api', hpp());
+// 🛡️ ด่าน 5: Bcrypt (OWASP A07) - ระบบเข้ารหัสผ่านซับซ้อน (ฝังอยู่ในไฟล์ authRoutes.js แล้ว!)
 
 
 // ==========================================
@@ -124,5 +119,5 @@ io.on("connection", (socket) => {
 // เริ่มรันเซิร์ฟเวอร์
 const PORT = process.env.PORT || 10000;
 server.listen(PORT, () => {
-    console.log(`🚀 Server is running on port ${PORT} (พร้อมระบบแชทและ OWASP 5 ด่าน!)`);
+    console.log(`🚀 Server is running on port ${PORT} (พร้อมระบบแชทและ OWASP Security!)`);
 });
