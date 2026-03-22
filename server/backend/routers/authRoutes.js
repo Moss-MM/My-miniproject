@@ -16,7 +16,6 @@ router.post('/register', async (req, res) => {
         }
 
         // 👇 2. ดักความยากของรหัสผ่าน (ต้องมีทั้งตัวอักษรและตัวเลข)
-        // Regex นี้แปลว่า: ต้องมีตัวอักษร (a-z หรือ A-Z) อย่างน้อย 1 ตัว และตัวเลข (0-9) อย่างน้อย 1 ตัว
         const passwordRegex = /^(?=.*[a-zA-Z])(?=.*[0-9])/;
         if (!passwordRegex.test(password)) {
             return res.status(400).json({ message: "รหัสผ่านต้องมีทั้งตัวอักษรภาษาอังกฤษและตัวเลขผสมกันครับ" });
@@ -60,6 +59,7 @@ router.post('/login', async (req, res) => {
                 id: user._id,      
                 username: user.username, 
                 email: user.email,
+                profilePic: user.profilePic, // 👈 ส่งรูปไปตอนล็อกอินด้วย
                 bio: user.bio,
                 location: user.location,
                 education: user.education,
@@ -75,16 +75,16 @@ router.post('/login', async (req, res) => {
 });
 
 // ==========================================
-// 3. แก้ไขข้อมูลส่วนตัว (Update Profile)
+// 3. แก้ไขข้อมูลส่วนตัว (Update Profile) + อัปเดตรูปภาพ
 // ==========================================
 router.put('/update/:id', async (req, res) => {
     try {
-        // 👇 รับค่ามาให้ครบทุกช่อง
-        const { username, email, bio, location, education, work } = req.body;
+        // 👇 รับค่า profilePic มาด้วย
+        const { username, email, bio, location, education, work, profilePic } = req.body;
         
         const updatedUser = await User.findByIdAndUpdate(
             req.params.id, 
-            { username, email, bio, location, education, work }, 
+            { username, email, bio, location, education, work, profilePic }, // 👈 เซฟรูปภาพลง Database
             { new: true } 
         );
 
@@ -96,6 +96,7 @@ router.put('/update/:id', async (req, res) => {
                 id: updatedUser._id,
                 username: updatedUser.username,
                 email: updatedUser.email,
+                profilePic: updatedUser.profilePic, // 👈 ส่งรูปใหม่กลับไปโชว์
                 bio: updatedUser.bio,
                 location: updatedUser.location,
                 education: updatedUser.education,

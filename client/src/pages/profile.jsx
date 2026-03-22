@@ -14,35 +14,45 @@ const Profile = () => {
   const [education, setEducation] = useState(loggedInUser?.education || "");
   const [work, setWork] = useState(loggedInUser?.work || "");
   
+  // 👇 เพิ่ม State สำหรับเก็บรูปโปรไฟล์ (Base64)
+  const [profilePic, setProfilePic] = useState(loggedInUser?.profilePic || "");
+  
   const [loading, setLoading] = useState(false);
 
-  // 👇 1. เพิ่ม State สำหรับเก็บสถิติของจริง 👇
   const [postCount, setPostCount] = useState(0);
   const [totalLikes, setTotalLikes] = useState(0);
 
-  // 👇 2. ดึงโพสต์ทั้งหมดมากรองหาเฉพาะของเรา เพื่อนับจำนวน 👇
   useEffect(() => {
     const fetchMyStats = async () => {
       try {
         const res = await axios.get('https://mygram-backend-yiba.onrender.com/api/posts');
-        
-        // กรองเอาเฉพาะโพสต์ที่เป็นของเรา
         const myPosts = res.data.filter(post => (post.userId?._id || post.userId) === myId);
-        
-        // อัปเดตจำนวนโพสต์
         setPostCount(myPosts.length);
-
-        // นับยอดไลก์รวมจากทุกโพสต์ของเรา
         const likes = myPosts.reduce((sum, post) => sum + (post.likes?.length || 0), 0);
         setTotalLikes(likes);
-
       } catch (err) {
         console.error("ดึงสถิติพลาด:", err);
       }
     };
-
     if (myId) fetchMyStats();
   }, [myId]);
+
+  // 👇 ฟังก์ชันแปลงรูปภาพเป็นข้อความ (Base64) เพื่อโชว์และเตรียมส่งไปหลังบ้าน
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      // ตรวจสอบขนาดไฟล์นิดหน่อย (ไม่ให้เกิน 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        return alert("ไฟล์รูปใหญ่เกินไปครับ (จำกัดไม่เกิน 5MB)");
+      }
+      
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onloadend = () => {
+        setProfilePic(reader.result); // เอา Base64 ไปใส่ State รอเซฟ
+      };
+    }
+  };
 
   const handleUpdate = async (e) => {
     e.preventDefault();
@@ -55,12 +65,14 @@ const Profile = () => {
         bio,       
         location,
         education,
-        work
+        work,
+        profilePic // 👇 อย่าลืมส่งรูปไปให้หลังบ้านด้วย!
       });
 
       localStorage.setItem("user", JSON.stringify(res.data.user || res.data));
       
       alert("🎉 บันทึกการเปลี่ยนแปลงโปรไฟล์สำเร็จ!");
+      window.location.reload(); // รีเฟรชหน้า 1 ทีให้ข้อมูลใหม่เด้งทั่วเว็บ
     } catch (err) {
       console.error(err);
       alert("เกิดข้อผิดพลาดในการอัปเดต");
@@ -92,16 +104,27 @@ const Profile = () => {
         <div style={{ ...cardStyle, padding: 0, overflow: 'hidden', marginBottom: '25px' }}>
           <div style={{ height: '200px', background: 'linear-gradient(to right, #4facfe 0%, #00f2fe 100%)' }}></div>
           <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: '-75px' }}>
-             <img 
-               src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${username}`} 
-               alt="profile"
-               style={{ width: '130px', height: '130px', borderRadius: '50%', border: '5px solid #fff', backgroundColor: '#f0f0f0', objectFit: 'cover', boxShadow: '0 4px 10px rgba(0,0,0,0.1)' }} 
-             />
+             
+             {/* 👇 เปลี่ยนรูปภาพให้กดได้ 👇 */}
+             <label htmlFor="profilePicInput" style={{ cursor: 'pointer', position: 'relative', display: 'inline-block' }}>
+               <img 
+                 // ถ้ามีรูปในระบบให้โชว์รูปนั้น ถ้าไม่มีให้ดึงรูปอวาตาร์ตัวการ์ตูนมาโชว์แทน
+                 src={profilePic || `https://api.dicebear.com/7.x/avataaars/svg?seed=${username}`} 
+                 alt="profile"
+                 style={{ width: '130px', height: '130px', borderRadius: '50%', border: '5px solid #fff', backgroundColor: '#f0f0f0', objectFit: 'cover', boxShadow: '0 4px 10px rgba(0,0,0,0.1)' }} 
+               />
+               {/* ไอคอนกล้องเล็กๆ แปะทับตรงมุมรูป */}
+               <div style={{ position: 'absolute', bottom: '5px', right: '5px', background: '#fff', padding: '6px', borderRadius: '50%', border: '1px solid #dbdbdb', boxShadow: '0 2px 5px rgba(0,0,0,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                 📷
+               </div>
+             </label>
+             {/* กล่องเลือกไฟล์ที่ถูกซ่อนเอาไว้ */}
+             <input type="file" id="profilePicInput" accept="image/png, image/jpeg, image/webp" style={{ display: 'none' }} onChange={handleImageChange} />
+
              <h1 style={{ margin: '15px 0 5px 0', color: '#1c1e21', fontSize: '26px' }}>{username || "ผู้ใช้งาน"}</h1>
              <p style={{ margin: 0, color: '#65676b', fontSize: '15px' }}>{email || "ยังไม่ได้ตั้งค่าอีเมล"}</p>
              
              <div style={{ display: 'flex', gap: '40px', marginTop: '20px', borderTop: '1px solid #efefef', paddingTop: '20px', width: '100%', justifyContent: 'center' }}>
-                {/* 👇 3. เปลี่ยนตัวเลขหลอก เป็น State ของจริง 👇 */}
                 <div style={{ textAlign: 'center' }}><div style={{ fontWeight: 'bold', fontSize: '22px', color: '#1c1e21' }}>{postCount}</div><div style={{ fontSize: '13px', color: '#888' }}>โพสต์ทั้งหมด</div></div>
                 <div style={{ textAlign: 'center' }}><div style={{ fontWeight: 'bold', fontSize: '22px', color: '#1c1e21' }}>{loggedInUser?.friends?.length || 0}</div><div style={{ fontSize: '13px', color: '#888' }}>เพื่อน</div></div>
                 <div style={{ textAlign: 'center' }}><div style={{ fontWeight: 'bold', fontSize: '22px', color: '#1c1e21' }}>{totalLikes}</div><div style={{ fontSize: '13px', color: '#888' }}>ถูกใจ</div></div>
