@@ -7,7 +7,7 @@ const CreatePost = () => {
   const [loading, setLoading] = useState(false);
   const [showImgInput, setShowImgInput] = useState(false); 
 
-  // 👇 1. ดึงข้อมูลคนล็อกอินมาเตรียมไว้ใช้เปลี่ยนชื่อ
+  // 👇 ดึงข้อมูลคนล็อกอินมาเตรียมไว้ใช้เปลี่ยนชื่อและรูป
   const loggedInUser = JSON.parse(localStorage.getItem("user"));
 
   const handlePost = async (e) => {
@@ -59,15 +59,14 @@ const CreatePost = () => {
     }}>
       <div style={{ display: 'flex', gap: '15px' }}>
         
-        {/* 👇 2. เปลี่ยนรูปโปรไฟล์ในกล่องโพสต์ ให้ตรงกับคนล็อกอิน */}
+        {/* 👇 อัปเดตให้ดึงรูปโปรไฟล์จริงมาโชว์ในกล่องโพสต์ */}
         <img 
-          src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${loggedInUser ? loggedInUser.username : "Guest"}`} 
+          src={loggedInUser?.profilePic || `https://api.dicebear.com/7.x/avataaars/svg?seed=${loggedInUser ? loggedInUser.username : "Guest"}`} 
           alt="profile" 
           style={{ width: '45px', height: '45px', borderRadius: '50%', objectFit: 'cover', border: '2px solid #e1e8ed' }} 
         />
 
         <div style={{ flex: 1 }}>
-          {/* 👇 3. เปลี่ยนคำว่า Moss เป็นชื่อ username ของคนที่ล็อกอินอยู่ */}
           <textarea
             placeholder={`คุณกำลังคิดอะไรอยู่ ${loggedInUser ? loggedInUser.username : ""} ?`}
             value={desc}

@@ -10,12 +10,11 @@ const Postcard = ({ post }) => {
   const validLikes = Array.isArray(post?.likes) ? post.likes : [];
   const validComments = Array.isArray(post?.comments) ? post.comments : [];
 
-  // 👇 ตัวแปร State ทั้งหมด ต้องอยู่ตรงนี้! (ในปีกกาของ Postcard)
   const [comment, setComment] = useState("");
   const [allComments, setAllComments] = useState(validComments);
   const [likes, setLikes] = useState(typeof post.likes === 'number' ? post.likes : validLikes.length);
   const [isLiked, setIsLiked] = useState(post.isLiked || validLikes.includes(myId));
-  const [isRequested, setIsRequested] = useState(false); // 👈 เพิ่มชิปความจำให้ปุ่มตรงนี้
+  const [isRequested, setIsRequested] = useState(false); 
 
   const handleLike = async () => {
     try {
@@ -26,7 +25,6 @@ const Postcard = ({ post }) => {
     } catch (err) { console.error(err); }
   };
 
-  // คอมเมนต์แบบ Real-time
   const handleAddComment = async (e) => {
     if (e.key === 'Enter' && comment.trim() !== "") {
       if (!myId) return alert("กรุณาล็อกอินก่อนคอมเมนต์ครับ!");
@@ -63,12 +61,11 @@ const Postcard = ({ post }) => {
     }
   };
 
-  // ฟังก์ชันกดส่งคำขอเป็นเพื่อน
   const handleAddFriend = async () => {
     try {
       await axios.put(`https://mygram-backend-yiba.onrender.com/api/auth/${post.authorId}/friend-request`, { userId: myId });
       alert("✅ ส่งคำขอเป็นเพื่อนไปแล้ว รอเขากดยอมรับนะ!");
-      setIsRequested(true); // 👈 สั่งให้ React จำว่ากดขอไปแล้ว!
+      setIsRequested(true); 
     } catch (err) { 
       alert(err.response?.data || "เกิดข้อผิดพลาดในการส่งคำขอ"); 
     }
@@ -80,16 +77,22 @@ const Postcard = ({ post }) => {
       {/* ================= Header ================= */}
       <div style={{ padding: '15px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${post.username}`} style={{ width: '40px', height: '40px', borderRadius: '50%', background: '#f0f0f0', border: '1px solid #efefef' }} alt="avatar" />
+          
+          {/* 👇 ซ่อมรูปโปรไฟล์หน้าโพสต์แล้ว ดึงรูปจริงมาโชว์ + ใส่ objectFit */}
+          <img 
+            src={post.profilePic || `https://api.dicebear.com/7.x/avataaars/svg?seed=${post.username}`} 
+            style={{ width: '40px', height: '40px', borderRadius: '50%', background: '#f0f0f0', border: '1px solid #efefef', objectFit: 'cover' }} 
+            alt="avatar" 
+          />
+          
           <div style={{ display: 'flex', flexDirection: 'column' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
               <span style={{ fontWeight: 'bold', fontSize: '15px', color: '#262626' }}>{post.username}</span>
               
-              {/* 👇 โชว์ปุ่ม "เพิ่มเพื่อน" และเปลี่ยนสีเมื่อกดแล้ว */}
               {loggedInUser && post.authorId && post.authorId !== myId && (
                  <button 
                    onClick={handleAddFriend} 
-                   disabled={isRequested} // 👈 ปิดไม่ให้กดซ้ำ
+                   disabled={isRequested} 
                    style={{ 
                      background: isRequested ? '#efefef' : '#0095f6', 
                      color: isRequested ? '#8e8e8e' : '#fff', 
@@ -112,7 +115,6 @@ const Postcard = ({ post }) => {
           </div>
         </div>
 
-        {/* ปุ่มลบโพสต์ เฉพาะโพสต์ตัวเอง */}
         {loggedInUser && (loggedInUser.username === post.username) && (
           <button onClick={handleDelete} style={{ background: 'none', border: 'none', color: '#ed4956', cursor: 'pointer', fontSize: '13px', fontWeight: 'bold' }}>ลบโพสต์</button>
         )}
