@@ -6,8 +6,12 @@ const dns = require("dns");
 const http = require('http');
 const { Server } = require('socket.io');
 
+// --- แพ็กเกจความปลอดภัย (OWASP) ---
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
+const mongoSanitize = require('express-mongo-sanitize');
+const xss = require('xss-clean');
+const hpp = require('hpp');
 
 dns.setServers(["8.8.8.8", "1.1.1.1"]);
 dotenv.config();
@@ -15,32 +19,46 @@ dotenv.config();
 const app = express();
 
 // ==========================================
-// 🚨 ตั้งค่าความปลอดภัยและทางเชื่อม (CORS) - ท่าไม้ตาย!
+// 🌐 1. ตั้งค่าการเชื่อมต่อ (CORS)
 // ==========================================
-
 app.use(cors({
-    origin: "*", // 👈 ท่าไม้ตาย: เปิดรับทุกโดเมนในจักรวาล Vercel จะเปลี่ยนชื่ออีกกี่รอบก็เข้าได้!
+    origin: "*", // เปิดรับทุกโดเมนจาก Vercel
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"]
 }));
 
+// อ่านค่า JSON จาก Request (ต้องอยู่ก่อน Security บางตัว)
 app.use(express.json()); 
 
-// ใส่เกราะป้องกัน Helmet (OWASP A05)
+// ==========================================
+// 🛡️ 2. ตั้งค่าความปลอดภัย 5 ด่าน (OWASP Top 10)
+// ==========================================
+
+// ด่าน 1: Helmet (OWASP A05) - ซ่อนข้อมูล Server และตั้งค่า HTTP Headers ให้ปลอดภัย
 app.use(helmet()); 
 app.use(helmet.crossOriginResourcePolicy({ policy: "cross-origin" }));
 
-// ป้องกันการยิง Request รัวๆ (OWASP A04)
+// ด่าน 2: Rate Limit (OWASP A04) - ป้องกันคนยิง Request รัวๆ (Anti-DDoS / Brute Force)
 const limiter = rateLimit({
-    windowMs: 15 * 60 * 1000, 
-    max: 200, 
+    windowMs: 15 * 60 * 1000, // 15 นาที
+    max: 200, // ห้ามเกิน 200 ครั้ง
     message: "คุณส่งคำขอมากเกินไป กรุณารอสักครู่แล้วลองใหม่ครับ"
 });
 app.use('/api', limiter); 
 
-// ==========================================
+// ด่าน 3: Mongo Sanitize (OWASP A03) - ป้องกันการเจาะฐานข้อมูล (NoSQL Injection)
+app.use(mongoSanitize());
 
-// เชื่อมต่อ Database
+// ด่าน 4: XSS Clean (OWASP A03) - ป้องกันการฝังสคริปต์ไวรัสข้ามไซต์ (Cross-Site Scripting)
+app.use(xss());
+
+// ด่าน 5: HPP - ป้องกันการป่วนเซิร์ฟเวอร์ด้วย Parameter ซ้ำซ้อน (HTTP Parameter Pollution)
+app.use(hpp());
+
+
+// ==========================================
+// 🗄️ 3. เชื่อมต่อ Database (MongoDB)
+// ==========================================
 async function connectDB() {
     try {
         await mongoose.connect(process.env.Database_url);
@@ -51,25 +69,30 @@ async function connectDB() {
 }
 connectDB();
 
-// นำเข้า Routers
+
+// ==========================================
+// 🛤️ 4. ตั้งค่าเส้นทาง API (Routers)
+// ==========================================
 const authRoutes = require('./backend/routers/authRoutes'); 
 const postRoutes = require('./backend/routers/PostRouters'); 
 const messageRoutes = require('./backend/routers/MessageRouters'); 
 const groupRoutes = require('./backend/routers/GroupRouters'); 
 
-// เปิดใช้งาน API
 app.use('/api/auth', authRoutes);
 app.use('/api/posts', postRoutes);
 app.use('/api/messages', messageRoutes); 
 app.use('/api/groups', groupRoutes); 
 
-app.get('/', (req, res) => res.send("🚀 MyGram Backend is Running Securely!"));
+app.get('/', (req, res) => res.send("🚀 MyGram Backend is Running Securely with OWASP!"));
 
-// สร้าง Server สำหรับ Socket.io
+
+// ==========================================
+// 💬 5. ระบบแชทแบบเรียลไทม์ (Socket.io)
+// ==========================================
 const server = http.createServer(app);
 const io = new Server(server, {
     cors: {
-        origin: "*", // 👈 ปลดล็อกแชทให้ใช้บน Vercel ได้ทุกโดเมนชัวร์ๆ 100%
+        origin: "*", 
         methods: ["GET", "POST"]
     }
 });
@@ -98,7 +121,8 @@ io.on("connection", (socket) => {
     });
 });
 
+// เริ่มรันเซิร์ฟเวอร์
 const PORT = process.env.PORT || 10000;
 server.listen(PORT, () => {
-    console.log(`🚀 Server is running on port ${PORT} (พร้อมระบบแชทและ OWASP Security!)`);
+    console.log(`🚀 Server is running on port ${PORT} (พร้อมระบบแชทและ OWASP 5 ด่าน!)`);
 });

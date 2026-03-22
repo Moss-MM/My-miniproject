@@ -4,7 +4,6 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 
 // ตรวจสอบชื่อไฟล์ตัวเล็กตัวใหญ่ให้ตรงกับในเครื่องคุณ
 import Home from './pages/home';
-import Admin from './pages/admin';
 import Chat from './pages/chat';
 import Group from './pages/group';
 import Login from './pages/login';
@@ -23,7 +22,6 @@ function App() {
         {/* 👇 พระเอกของเราอยู่บรรทัดนี้ครับ: ถ้าไม่มี user ให้เด้งไปหน้า login */}
         <Route path="/" element={user ? <Home /> : <Navigate to="/login" replace />} />
         
-        <Route path="/admin" element={<Admin />} />
         <Route path="/chat" element={<Chat />} />
         <Route path="/group" element={<Group />} />
         <Route path="/login" element={<Login />} />

@@ -4,19 +4,35 @@ const User = require('../models/User');
 const bcrypt = require('bcryptjs');
 
 // ==========================================
-// 1. ระบบสมัครสมาชิก (Register)
+// 1. ระบบสมัครสมาชิก (Register) + ล็อกรหัสผ่านยาก
 // ==========================================
 router.post('/register', async (req, res) => {
     try {
         const { username, email, password } = req.body;
+
+        // 👇 1. ดักความยาวรหัสผ่าน (ต้อง 6 ตัวขึ้นไป)
+        if (password.length < 6) {
+            return res.status(400).json({ message: "รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษรครับ" });
+        }
+
+        // 👇 2. ดักความยากของรหัสผ่าน (ต้องมีทั้งตัวอักษรและตัวเลข)
+        // Regex นี้แปลว่า: ต้องมีตัวอักษร (a-z หรือ A-Z) อย่างน้อย 1 ตัว และตัวเลข (0-9) อย่างน้อย 1 ตัว
+        const passwordRegex = /^(?=.*[a-zA-Z])(?=.*[0-9])/;
+        if (!passwordRegex.test(password)) {
+            return res.status(400).json({ message: "รหัสผ่านต้องมีทั้งตัวอักษรภาษาอังกฤษและตัวเลขผสมกันครับ" });
+        }
+
+        // 3. เช็คว่าอีเมลซ้ำไหม
         const existingUser = await User.findOne({ email });
         if (existingUser) return res.status(400).json({ message: "อีเมลนี้มีคนใช้แล้วครับ" });
 
+        // 4. เข้ารหัสผ่าน (Hashing) ก่อนเซฟลง Database
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
 
         const newUser = new User({ username, email, password: hashedPassword });
         await newUser.save();
+        
         res.status(201).json({ message: "สมัครสมาชิกสำเร็จ!", user: newUser });
     } catch (error) {
         console.error(error);
