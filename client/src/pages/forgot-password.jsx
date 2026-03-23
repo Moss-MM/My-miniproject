@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-// 👇 1. นำเข้า Link และ useNavigate จาก react-router-dom
 import { Link, useNavigate } from 'react-router-dom'; 
 
 const ForgotPassword = () => {
@@ -8,7 +7,12 @@ const ForgotPassword = () => {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const navigate = useNavigate(); // 👈 2. เรียกใช้งาน navigate
+  const navigate = useNavigate(); 
+
+  // 👇 1. เพิ่มตัวแปรเช็คความแข็งแกร่งของรหัสผ่าน
+  const isLengthValid = newPassword.length >= 6;
+  const hasLetterAndNumber = /[A-Za-z]/.test(newPassword) && /[0-9]/.test(newPassword);
+  const isPasswordStrong = isLengthValid && hasLetterAndNumber;
 
   const handleReset = async (e) => {
     e.preventDefault();
@@ -24,7 +28,6 @@ const ForgotPassword = () => {
         newPassword
       });
       alert(res.data.message);
-      // 👇 3. ใช้ navigate แทน window.location.href เพื่อเปลี่ยนหน้าแบบไม่รีเฟรช
       navigate('/login'); 
     } catch (err) {
       alert(err.response?.data?.message || "เกิดข้อผิดพลาด");
@@ -51,21 +54,44 @@ const ForgotPassword = () => {
             type="password" placeholder="รหัสผ่านใหม่" required value={newPassword} onChange={(e) => setNewPassword(e.target.value)}
             style={{ padding: '12px', borderRadius: '8px', border: '1px solid #ddd', outline: 'none' }}
           />
+
+          {/* 👇 2. กล่องแสดงสถานะความปลอดภัย (จะโชว์เมื่อเริ่มพิมพ์รหัสใหม่) */}
+          {newPassword.length > 0 && (
+            <div style={{ fontSize: '12px', textAlign: 'left', marginTop: '-5px', marginBottom: '5px', background: '#f8f9fa', padding: '10px', borderRadius: '6px', border: '1px solid #efefef' }}>
+              <div style={{ color: '#262626', fontWeight: 'bold', marginBottom: '5px' }}>รหัสผ่านใหม่ของคุณต้องมี:</div>
+              <div style={{ color: isLengthValid ? '#28a745' : '#ed4956', transition: '0.3s' }}>
+                {isLengthValid ? '✅' : '❌'} ความยาวอย่างน้อย 6 ตัวอักษร
+              </div>
+              <div style={{ color: hasLetterAndNumber ? '#28a745' : '#ed4956', transition: '0.3s' }}>
+                {hasLetterAndNumber ? '✅' : '❌'} มีตัวอักษรภาษาอังกฤษและตัวเลข
+              </div>
+            </div>
+          )}
+
           <input 
             type="password" placeholder="ยืนยันรหัสผ่านใหม่" required value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)}
             style={{ padding: '12px', borderRadius: '8px', border: '1px solid #ddd', outline: 'none' }}
           />
           
+          {/* 👇 3. ล็อกปุ่ม "รีเซ็ตรหัสผ่าน" ถ้าข้อมูลยังไม่ปลอดภัย */}
           <button 
-            type="submit" disabled={loading}
-            style={{ background: '#0095f6', color: '#fff', border: 'none', padding: '12px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', transition: '0.3s' }}
+            type="submit" disabled={loading || !isPasswordStrong}
+            style={{ 
+              background: (loading || !isPasswordStrong) ? '#b2dffc' : '#0095f6', 
+              color: '#fff', 
+              border: 'none', 
+              padding: '12px', 
+              borderRadius: '8px', 
+              fontWeight: 'bold', 
+              cursor: (loading || !isPasswordStrong) ? 'not-allowed' : 'pointer', 
+              transition: '0.3s' 
+            }}
           >
             {loading ? "กำลังบันทึก..." : "รีเซ็ตรหัสผ่าน"}
           </button>
         </form>
 
         <div style={{ marginTop: '20px', fontSize: '14px' }}>
-          {/* 👇 4. เปลี่ยนจาก <a> เป็น <Link> */}
           <Link to="/login" style={{ color: '#0095f6', textDecoration: 'none', fontWeight: 'bold' }}>
             ← กลับไปหน้าเข้าสู่ระบบ
           </Link>
