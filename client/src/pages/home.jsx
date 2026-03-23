@@ -99,7 +99,7 @@ const Home = () => {
 
   return (
     <div style={{ 
-      background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)',
+      background: 'linear-gradient(135deg, #f0f2f5 0%, #fafafa 100%)',
       minHeight: '100vh', 
       fontFamily: 'Kanit',
       backgroundAttachment: 'fixed',
