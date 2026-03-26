@@ -40,6 +40,7 @@ const Navbar = () => {
     if (window.confirm("คุณต้องการออกจากระบบใช่หรือไม่?")) {
       localStorage.removeItem("user"); // 👈 ล้างข้อมูลจริงๆ เพื่อไม่ให้แอบเข้าหน้าอื่นได้
       navigate('/login');
+      window.location.href = '/login'; // 👈 รีเฟรชหน้าเพื่อเคลียร์สถานะทั้งหมด
     }
   };
 
